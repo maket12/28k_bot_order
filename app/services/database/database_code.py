@@ -175,18 +175,18 @@ class ProjectsDatabase:
                                        (company_id,)).fetchone()
 
 
-class CompaniesDatabase:
-    def __init__(self, project_name: str):
-        db_file = f"files/{project_name}_companies_database.db"
-        # Получаем абсолютный путь к файлу базы данных относительно этого файла
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        absolute_path = os.path.join(base_dir, db_file)
-
-        self.connection = sqlite3.connect(absolute_path)
-        self.cursor = self.connection.cursor()
-
-    def create_table(self, company_name: str):
-        with self.connection:
-            self.cursor.execute(f'CREATE TABLE IF NOT EXISTS {company_name} ('
-                                '"id" INTEGER PRIMARY KEY,')
+# class CompaniesDatabase:
+#     def __init__(self, project_name: str):
+#         db_file = f"files/{project_name}_companies_database.db"
+#         # Получаем абсолютный путь к файлу базы данных относительно этого файла
+#         base_dir = os.path.dirname(os.path.abspath(__file__))
+#         absolute_path = os.path.join(base_dir, db_file)
+#
+#         self.connection = sqlite3.connect(absolute_path)
+#         self.cursor = self.connection.cursor()
+#
+#     def create_table(self, company_name: str):
+#         with self.connection:
+#             self.cursor.execute(f'CREATE TABLE IF NOT EXISTS {company_name} ('
+#                                 '"id" INTEGER PRIMARY KEY,')
 

@@ -76,3 +76,11 @@ async def settings_project(call: types.CallbackQuery, bot: Bot):
                                     reply_markup=create_project_settings_markup(project_name=project_name))
     except Exception as e:
         logger.error("Возникла ошибка в settings_project: %s", e)
+
+
+@router.callback_query(F.data.startswith("delete_project"))
+async def delete_project(call: types.CallbackQuery, bot: Bot):
+    try:
+        project_name = ''.join(call.data.split('_')[2:])
+    except Exception as e:
+        logger.error("Возникла ошибка в delete_project: %s", e)
