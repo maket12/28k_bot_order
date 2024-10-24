@@ -2,7 +2,7 @@ import asyncio
 from aiogram import Router, F, types, Bot
 from aiogram.fsm.context import FSMContext
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_projects_markup, build_companies_markup, create_project_settings_markup
-from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import skip_action_markup
+from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import skip_action_markup, reply_back_markup
 from app.bots.aiogram_admin_panel.state.state_init import GetProjectAttributes
 from app.services.database.database_code import ProjectsDatabase
 from app.services.logs.logging import logger
@@ -35,7 +35,7 @@ async def add_project(call: types.CallbackQuery | types.Message, state: FSMConte
 @router.callback_query(F.data.startswith("choose_project"))
 async def choose_project(call: types.CallbackQuery, bot: Bot):
     try:
-        project_name = ''.join(call.data.split('_')[-1])
+        project_name = ''.join(call.data.split('_')[2:])
         all_companies = projects_db.get_companies(project_name=project_name)
         await bot.edit_message_text(text=f"Вы перешли в меню проекта {project_name}.",
                                     chat_id=call.from_user.id,
@@ -82,5 +82,29 @@ async def settings_project(call: types.CallbackQuery, bot: Bot):
 async def delete_project(call: types.CallbackQuery, bot: Bot):
     try:
         project_name = ''.join(call.data.split('_')[2:])
+        projects_db.delete_project(name=project_name)
+
+        await bot.edit_message_text(text=f"Проект '{project_name} успешно удалён!'",
+                                    chat_id=call.from_user.id,
+                                    message_id=call.message.message_id,
+                                    reply_markup=None)
+        await asyncio.sleep(1.5)
+        await see_projects(call=call, bot=bot)
     except Exception as e:
         logger.error("Возникла ошибка в delete_project: %s", e)
+
+
+@router.callback_query(F.data.startswith("change_project_name"))
+async def change_project_name(call: types.CallbackQuery, state: FSMContext, bot: Bot):
+    try:
+        project_name = ''.join(call.data.split('_')[3:])
+        await bot.delete_message(chat_id=call.from_user.id,
+                                 message_id=call.message.message_id)
+        await bot.send_message(text="Отправьте новое название проекта:",
+                               chat_id=call.from_user.id,
+                               reply_markup=reply_back_markup)
+        await state.set_state(GetProjectAttributes.change_project_name)
+        await state.update_data(old_name=project_name)
+    except Exception as e:
+        logger.error("Возникла ошибка в change_project_name: %s", e)
+

@@ -19,6 +19,7 @@ class GetBot(StatesGroup):
 
 class GetProjectAttributes(StatesGroup):
     get_project_name = State()
+    change_project_name = State()
 
 
 class GetCompanyAttributes(StatesGroup):

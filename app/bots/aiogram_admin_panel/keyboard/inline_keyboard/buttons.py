@@ -185,10 +185,10 @@ projects_main_markup = InlineKeyboardMarkup(inline_keyboard=[
 def create_after_company_markup(project_name: str, company_name: str):
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="К проекту", callback_data=f"project_{project_name}")
+            InlineKeyboardButton(text="К проекту", callback_data=f"choose_project_{project_name}")
         ],
         [
-            InlineKeyboardButton(text="Настройки компании", callback_data=f"company_{company_name}")
+            InlineKeyboardButton(text="Настройки компании", callback_data=f"choose_company_{company_name}")
         ]
     ])
     return markup
@@ -210,7 +210,7 @@ def create_projects_markup(projects: list):
 def create_companies_buttons(companies: list):
     buttons = []
     for company in companies:
-        buttons.append(InlineKeyboardButton(text=company[0], callback_data=f"company_{company[0]}"))
+        buttons.append(InlineKeyboardButton(text=company[0], callback_data=f"choose_company_{company[0]}"))
     return buttons
 
 
@@ -265,7 +265,7 @@ def create_project_settings_markup(project_name: str):
             InlineKeyboardButton(text="Удалить", callback_data=f"delete_project_{project_name}")
         ],
         [
-            InlineKeyboardButton(text="Назад", callback_data=f"back_to_project_{project_name}")
+            InlineKeyboardButton(text="Назад", callback_data=f"choose_project_{project_name}")
         ]
     ])
     return markup

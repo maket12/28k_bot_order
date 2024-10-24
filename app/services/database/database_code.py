@@ -133,7 +133,7 @@ class ProjectsDatabase:
             return self.cursor.execute('INSERT INTO "projects" ("project_name") '
                                        'VALUES (?)', (name,))
 
-    def add_project_managers(self, project_name: str, manager: str):
+    def add_project_managers(self, name: str, manager: str):
         with self.connection:
             current_managers = self.cursor.execute('SELECT "managers_list" FROM "projects" '
                                                    'WHERE "project_name" = ?', (project_name,)).fetchone()[0]
@@ -143,11 +143,20 @@ class ProjectsDatabase:
                 current_managers += manager
 
             return self.cursor.execute('UPDATE "projects" SET "managers_list" = ? WHERE "project_name" = ?',
-                                       (current_managers, project_name))
+                                       (current_managers, name))
+
+    def change_project_name(self, old_name: str, new_name: str):
+        with self.connection:
+            self.cursor.execute('UPDATE "projects" SET "project_name" = ? WHERE "project_name" = ?',
+                                (new_name, old_name))
+            return self.cursor.execute('UPDATE "companies" SET "by_project_name" = ? WHERE "by_project_name" = ?',
+                                       (new_name, old_name))
 
     def delete_project(self, name: str):
         with self.connection:
-            return self.cursor.execute('DELETE FROM "projects" WHERE "project_name" = ?',
+            self.cursor.execute('DELETE FROM "projects" WHERE "project_name" = ?',
+                                (name,))
+            return self.cursor.execute('DELETE FROM "companies" WHERE "by_project_name" = ?',
                                        (name,))
 
     def add_company(self, company_attributes: list):
@@ -169,10 +178,10 @@ class ProjectsDatabase:
                                        'FROM "companies" WHERE "by_project_name" = ?',
                                        (project_name,)).fetchall()
 
-    def get_company_attributes(self, company_id: str):
+    def get_company_attributes(self, company_name: str):
         with self.connection:
-            return self.cursor.execute('SELECT * FROM "companies" WHERE "id" = ?',
-                                       (company_id,)).fetchone()
+            return self.cursor.execute('SELECT * FROM "companies" WHERE "company_name" = ?',
+                                       (company_name,)).fetchone()
 
 
 # class CompaniesDatabase:

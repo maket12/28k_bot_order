@@ -59,6 +59,14 @@ skip_action_markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     ]
 ])
 
+# Отдельная кнопка Назад
+
+reply_back_markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
+    [
+        KeyboardButton(text="Назад")
+    ]
+])
+
 # Кнопки выбора режима парсинга
 
 parsing_regime_markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[

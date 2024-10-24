@@ -25,12 +25,20 @@ async def add_company(call: types.CallbackQuery | types.Message, state: FSMConte
         logger.error("Возникла ошибка в add_company: %s", e)
 
 
-@router.callback_query(F.data.startswith("company"))
+@router.callback_query(F.data.startswith("choose_company"))
 async def choose_company(call: types.CallbackQuery, bot: Bot):
     try:
-        company_id = call.data.split("_")[1]
-        company_attributes = projects_db.get_company_attributes(company_id=company_id)
-
+        company_name = ''.join(call.data.split("_")[2:])
+        company_attributes = projects_db.get_company_attributes(company_name=company_name)
+        if company_attributes[3] == "grabbing":
+            parsing_regime = "Парсинг истории чата"
+        else:
+            parsing_regime = "Прослушка чата"
+        await bot.edit_message_text(text=f"Проект: {company_attributes[2]}\n"
+                                         f"Компания: {company_attributes[1]}\n"
+                                         f"Формат: {parsing_regime}\n"
+                                         f"Агент: ",
+                                    chat_id=call.from_user.id,)
 
     except Exception as e:
         logger.error("Возникла ошибка в choose_company: %s", e)
