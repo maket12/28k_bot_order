@@ -1,9 +1,9 @@
 from datetime import datetime
 import asyncio
 from pyrogram import Client, types
-# from bot.pyrogram_bot.utils.parsing_utils.posts_parsing import parsing_posts
-# from bot.pyrogram_bot.utils.replacing_utils.replacing_process import replace_posts
-# from bot.pyrogram_bot.utils.parsing_utils.date_amount_posts_to_edit import get_parameters_for_edit
+# from bot.pyrogram_scripts.utils.parsing_utils.posts_parsing import parsing_posts
+# from bot.pyrogram_scripts.utils.replacing_utils.replacing_process import replace_posts
+# from bot.pyrogram_scripts.utils.parsing_utils.date_amount_posts_to_edit import get_parameters_for_edit
 from app.services.database.database_code import AccountsDatabase
 from app.services.logs.logging import logger
 

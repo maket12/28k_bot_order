@@ -1,7 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.handlers import MessageHandler
-# from app.bots.pyrogram_bot.handlers.get_all_channels import get_all_channels
-from app.bots.workers_bots.pyrogram_bot.handlers.process_editing import process_editing_channel
+# from app.bots.pyrogram_scripts.handlers.get_all_channels import get_all_channels
+from app.bots.workers_bots.pyrogram_scripts.handlers.process_editing import process_editing_channel
 
 
 def register_handlers(app: Client):

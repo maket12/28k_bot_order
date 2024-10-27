@@ -5,8 +5,8 @@ from app.bots.aiogram_admin_panel.handlers.reply_buttons.accounts import account
 from app.bots.aiogram_admin_panel.handlers.inline_buttons.accounts.accounts import accounts_bots
 from app.bots.aiogram_admin_panel.handlers.inline_buttons.accounts.accounts import accounts_secretary_posts, accounts_secretary_comments, accounts_agent_bot
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import proxy_markup, single_back_markup
-from app.bots.workers_bots.aiogram_bot.check_connection import check_aiogram_connection
-from app.bots.workers_bots.pyrogram_bot.check_connection import check_pyrogram_connection, check_pyrogram_code
+from app.bots.workers_bots.aiogram_scripts.check_connection import check_aiogram_connection
+from app.bots.workers_bots.pyrogram_scripts.check_connection import check_pyrogram_connection, check_pyrogram_code
 from app.services.database.database_code import AccountsDatabase
 from app.services.logs.logging import logger
 

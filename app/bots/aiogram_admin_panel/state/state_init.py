@@ -20,6 +20,7 @@ class GetBot(StatesGroup):
 class GetProjectAttributes(StatesGroup):
     get_project_name = State()
     change_project_name = State()
+    delete_project = State()
 
 
 class GetCompanyAttributes(StatesGroup):
@@ -29,3 +30,5 @@ class GetCompanyAttributes(StatesGroup):
     get_sender = State()
     get_source_channel = State()
     get_recipient_channel = State()
+    change_company_name = State()
+    delete_company = State()

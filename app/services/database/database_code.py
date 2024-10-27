@@ -168,6 +168,16 @@ class ProjectsDatabase:
                                        '"recipient_chat_type") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                        company_attributes)
 
+    def change_company_name(self, old_name: str, new_name: str):
+        with self.connection:
+            return self.cursor.execute('UPDATE "companies" SET "company_name" = ? WHERE "company_name" = ?',
+                                       (new_name, old_name))
+
+    def delete_company(self, company_name: str):
+        with self.connection:
+            return self.cursor.execute('DELETE FROM "companies" WHERE "company_name" = ?',
+                                       (company_name,))
+
     def get_projects(self):
         with self.connection:
             return self.cursor.execute('SELECT "project_name" FROM "projects"').fetchall()

@@ -1,6 +1,6 @@
 from aiogram import Dispatcher
-from app.bots.workers_bots.pyrogram_bot.bot_init.bot_instance import init_apps
-from app.bots.workers_bots.pyrogram_bot.bot_init.register_handlers import register_handlers
+from app.bots.workers_bots.pyrogram_scripts.bot_init.bot_instance import init_apps
+from app.bots.workers_bots.pyrogram_scripts.bot_init.register_handlers import register_handlers
 from app.services.database.database_code import AccountsDatabase
 
 

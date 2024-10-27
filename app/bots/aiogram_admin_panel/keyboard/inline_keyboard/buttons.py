@@ -180,7 +180,7 @@ projects_main_markup = InlineKeyboardMarkup(inline_keyboard=[
 ])
 
 
-# Клавиатура после создания компании
+# Клавиатура после создания компании/настройки компании
 
 def create_after_company_markup(project_name: str, company_name: str):
     markup = InlineKeyboardMarkup(inline_keyboard=[
@@ -188,7 +188,7 @@ def create_after_company_markup(project_name: str, company_name: str):
             InlineKeyboardButton(text="К проекту", callback_data=f"choose_project_{project_name}")
         ],
         [
-            InlineKeyboardButton(text="Настройки компании", callback_data=f"choose_company_{company_name}")
+            InlineKeyboardButton(text="Настройки компании", callback_data=f"settings_company_{company_name}")
         ]
     ])
     return markup
@@ -266,6 +266,46 @@ def create_project_settings_markup(project_name: str):
         ],
         [
             InlineKeyboardButton(text="Назад", callback_data=f"choose_project_{project_name}")
+        ]
+    ])
+    return markup
+
+
+# Функция создания клавиатуры настроек компании
+
+def create_company_settings_markup(company_name: str, project_name: str):
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Запустить", callback_data=f"launch_company_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Остановить", callback_data=f"halt_company_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Переименовать", callback_data=f"rename_company_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Редактировать", callback_data=f"edit_company_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Удалить", callback_data=f"delete_company_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data=f"choose_project_{project_name}")
+        ]
+    ])
+    return markup
+
+
+# Кнопки подтверждения/отклонения удаления проекта/компании
+
+def create_accepting_delete_markup(name: str):
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Подтвердить", callback_data=f"accept_deleting_{name}")
+        ],
+        [
+            InlineKeyboardButton(text="Назад", callback_data=f"reject_deleting_{name}")
         ]
     ])
     return markup

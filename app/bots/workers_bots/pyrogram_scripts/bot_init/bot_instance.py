@@ -1,4 +1,4 @@
-from app.bots.workers_bots.pyrogram_bot.utils.client_from_json.get_data_from_json import create_client_from_json
+from app.bots.workers_bots.pyrogram_scripts.utils.client_from_json.get_data_from_json import create_client_from_json
 from app.services.logs.logging import logger
 
 

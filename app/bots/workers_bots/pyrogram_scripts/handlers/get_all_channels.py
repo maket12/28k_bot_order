@@ -1,5 +1,5 @@
 from pyrogram import Client, types
-from app.bots.workers_bots.pyrogram_bot import aiogram_bot_uid
+from app.bots.workers_bots.pyrogram_scripts import aiogram_bot_uid
 from bot.services.logs.logging import logger
 
 
