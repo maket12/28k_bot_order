@@ -5,12 +5,15 @@ from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_acc_delete_markup, create_back_to_spec_acc_button, bot_task_markup
 from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import request_contact_markup
 from app.bots.aiogram_admin_panel.state.state_init import GetUser, GetBot
-from app.services.database.database_code import AccountsDatabase
+from app.bots.aiogram_admin_panel.utils.create_message_text.create_account_info import create_text
+from app.services.database.database_code import AccountsDatabase, ProjectsDatabase
 from app.services.logs.logging import logger
 
 router = Router()
 
 accounts_db = AccountsDatabase()
+
+projects_db = ProjectsDatabase()
 
 
 @router.callback_query(F.data == "accounts_users")
@@ -94,7 +97,7 @@ async def accounts_managers(call: types.CallbackQuery, bot: Bot):
         logger.error("Возникла ошибка в accounts_managers: %s", e)
 
 
-@router.callback_query(F.data == "bot_task_posts" )
+@router.callback_query(F.data == "bot_task_posts")
 async def accounts_secretary_posts(call: types.CallbackQuery, bot: Bot):
     try:
         accounts_ids = accounts_db.get_all_accounts_ids(account_type="bots",
@@ -140,7 +143,7 @@ async def accounts_agent_bot(call: types.CallbackQuery, bot: Bot):
         accounts_ids = accounts_db.get_all_accounts_ids(account_type="bots",
                                                         account_role="agent")
         await bot.edit_message_text(
-            text=f"Вы перешли в раздел 'agent'\n"
+            text=f"Вы перешли в раздел 'Аккаунты-агенты'\n"
                  "Для навигации используйте соответствующие кнопки ниже:",
             chat_id=call.from_user.id,
             message_id=call.message.message_id,
@@ -188,22 +191,19 @@ async def account_info(call: types.CallbackQuery, bot: Bot):
         account_id = call.data.split('_')[-1]
         acc_info = accounts_db.get_account_info(account_type=account_type, account_id=int(account_id))
 
+        counters = [0, 0, 0]
+
         if account_type == "users":
             acc_role = acc_info[3]
-            msg_text = (f"Роль: {acc_role}\n"
-                        f"Username: @{acc_info[2]}\n"
-                        f"Chat_id: {acc_info[1]}\n")
             if acc_info[3] == "team-lead":
-                msg_text += f"Кол-во менеджеров: {
-                    accounts_db.count_managers_by_head(account_chat_id=acc_info[1]
-                                                       )}"
+                counters[0], counters[1] = projects_db.count_all()
+                counters[2] = accounts_db.count_managers_by_head(account_chat_id=acc_info[1])
         else:
             acc_role = acc_info[1]
-            msg_text = (f"Роль: {acc_role}\n"
-                        f"Задача: *будет добавлено позже*\n"
-                        f"Имя: {acc_info[7]}\n"
-                        f"Username: @{acc_info[8]}\n")
 
+        msg_text = create_text(account_type=account_type,
+                               acc_info=acc_info,
+                               counters=counters)
         await bot.edit_message_text(text=msg_text, chat_id=call.from_user.id,
                                     message_id=call.message.message_id,
                                     reply_markup=create_acc_settings_markup(account_type=account_type,

@@ -1,7 +1,8 @@
 import asyncio
 from aiogram import Router, F, types, Bot
 from aiogram.fsm.context import FSMContext
-from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_projects_markup, build_companies_markup, create_project_settings_markup
+from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import \
+    build_companies_markup, create_project_settings_markup, build_projects_markup
 from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import skip_action_markup, reply_back_markup
 from app.bots.aiogram_admin_panel.state.state_init import GetProjectAttributes
 from app.services.database.database_code import ProjectsDatabase
@@ -55,13 +56,13 @@ async def see_projects(call: types.CallbackQuery, bot: Bot):
         projects = projects_db.get_projects()
 
         if not projects:
-            msg_text = "На данный момент в этом проекте не создано ни одной компании!"
+            msg_text = "На данный момент нет ни одного проекта!!"
         else:
             msg_text = "Выберите нужный проект:"
 
         await bot.edit_message_text(text=msg_text, chat_id=call.from_user.id,
                                     message_id=call.message.message_id,
-                                    reply_markup=create_projects_markup(projects=projects))
+                                    reply_markup=build_projects_markup(projects=projects, current_page=1))
     except Exception as e:
         logger.error("Возникла ошибка в see_projects: %s", e)
 
@@ -88,7 +89,7 @@ async def delete_project(call: types.CallbackQuery, bot: Bot):
                                     chat_id=call.from_user.id,
                                     message_id=call.message.message_id,
                                     reply_markup=None)
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(2)
         await see_projects(call=call, bot=bot)
     except Exception as e:
         logger.error("Возникла ошибка в delete_project: %s", e)

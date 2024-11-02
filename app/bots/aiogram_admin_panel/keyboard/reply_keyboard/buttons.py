@@ -1,5 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, KeyboardButtonRequestUser
 from aiogram.types import KeyboardButtonRequestChat
+from aiogram.utils.keyboard import ReplyKeyboardBuilder
 
 # Кнопки главного меню
 
@@ -82,18 +83,14 @@ parsing_regime_markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 ])
 
 
-# Функция создания кнопок выбора слушателя
+# Функция создания кнопок выбора аккаунта-бота
 
-def create_receivers_markup():
-    markup = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-        [
-            KeyboardButton(text="Пример 1")
-        ],
-        [
-            KeyboardButton(text="Пример 2")
-        ],
-        [
-            KeyboardButton(text="Назад")
-        ]
-    ])
-    return markup
+def create_bots_markup(account_usernames: list):
+    markup = ReplyKeyboardBuilder()
+
+    for username in account_usernames:
+        markup.row(KeyboardButton(text=username[0]))
+
+    markup.row(KeyboardButton(text="Назад"))
+
+    return markup.as_markup()

@@ -36,7 +36,7 @@ class AccountsDatabase:
 
             self.cursor.execute('CREATE TABLE IF NOT EXISTS "bots" ('
                                 '"id" INTEGER PRIMARY KEY,'
-                                '"bot_task" TEXT,'
+                                '"role" TEXT,'
                                 '"proxy" TEXT,'
                                 '"bot_token" TEXT,'
                                 '"phone_number" TEXT,'  # only for aiogram_admin_panel
@@ -65,7 +65,7 @@ class AccountsDatabase:
 
     def add_bot_account(self, values: list):
         with self.connection:
-            return self.cursor.execute('INSERT INTO "bots" ("bot_task", "proxy", '
+            return self.cursor.execute('INSERT INTO "bots" ("role", "proxy", '
                                        '"bot_token", "phone_number", "api_id", '
                                        '"api_hash", "bot_name", "bot_username") '
                                        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -80,6 +80,14 @@ class AccountsDatabase:
         with self.connection:
             return self.cursor.execute(f'SELECT "id" FROM "{account_type}" WHERE "role" = ?',
                                        (account_role,)).fetchall()
+
+    def get_all_accounts_usernames(self, task=None):  # for bots
+        with self.connection:
+            if not task:
+                return self.cursor.execute('SELECT "bot_username" FROM "bots"').fetchall()
+            else:
+                return self.cursor.execute('SELECT "bot_username" FROM "bots" WHERE "role" = ?',
+                                           (task,)).fetchall()
 
     def get_account_info(self, account_type: str, account_id: int):
         with self.connection:
@@ -125,8 +133,13 @@ class ProjectsDatabase:
                                 '"sender_account" INTEGER,'  # == CHAT_ID
                                 '"source_chat_id" INTEGER,'  # == CHAT_ID
                                 '"source_chat_type" TEXT,'
-                                '"recipient_chat_id" INTEGER,'  # == [CHAT_ID]
-                                '"recipient_chat_type" TEXT)')
+                                '"recipient_chat_id" TEXT,'  # == [CHAT_ID]
+                                '"recipient_chat_type" TEXT,'
+                                '"company_parsing" TEXT,'
+                                '"company_events" TEXT DEFAULT "",'  # chat_events (edit, pin, delete)
+                                '"person_link_enable" INTEGER,'
+                                '"comments_account" INTEGER,'  # == CHAT_ID
+                                '"comments_format" TEXT)')
 
     def add_project(self, name: str):
         with self.connection:
@@ -136,7 +149,7 @@ class ProjectsDatabase:
     def add_project_managers(self, name: str, manager: str):
         with self.connection:
             current_managers = self.cursor.execute('SELECT "managers_list" FROM "projects" '
-                                                   'WHERE "project_name" = ?', (project_name,)).fetchone()[0]
+                                                   'WHERE "project_name" = ?', (name,)).fetchone()[0]
             if current_managers:
                 current_managers += '|' + manager
             else:
@@ -164,14 +177,51 @@ class ProjectsDatabase:
             return self.cursor.execute('INSERT INTO "companies" '
                                        '("company_name", "by_project_name", "parsing_regime", '
                                        '"receiver_account", "sender_account", "source_chat_id", '
-                                       '"source_chat_type", "recipient_chat_id", '
+                                       '"source_chat_type", "recipient_chat_id",'
                                        '"recipient_chat_type") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                        company_attributes)
 
-    def change_company_name(self, old_name: str, new_name: str):
+    def change_company_attribute(self, company_name: str, attribute_name: str, value: str | int):
         with self.connection:
-            return self.cursor.execute('UPDATE "companies" SET "company_name" = ? WHERE "company_name" = ?',
-                                       (new_name, old_name))
+            return self.cursor.execute(f'UPDATE "companies" SET "{attribute_name}" = ? WHERE "company_name" = ?',
+                                       (value, company_name))
+
+    def add_recp_channel(self, company_name: str, recp_channel: str):
+        with self.connection:
+            current_channels = self.cursor.execute('SELECT "recipient_chat_id" FROM "companies" '
+                                                   'WHERE "company_name" = ?', (company_name,)).fetchone()[0]
+
+            new_value = current_channels + " " + recp_channel
+
+            return self.cursor.execute(f'UPDATE "companies" SET "recipient_chat_id" = ? '
+                                       f'WHERE "company_name" = ?', (new_value.strip(), company_name,))
+
+    def delete_recp_channel(self, company_name: str, recp_channel: str):
+        with (self.connection):
+            current_channels = self.cursor.execute('SELECT "recipient_chat_id" FROM '
+                                                   '"companies" WHERE "company_name" = ?',
+                                                   (company_name,)).fetchone()[0]
+
+            return self.cursor.execute('UPDATE "companies" SET "recipient_chat_id" = ? '
+                                       'WHERE "company_name" = ?',
+                                       (current_channels.replace(recp_channel, '').strip(), company_name))
+
+    def change_company_event(self, company_name: str, event: str):
+        with self.connection:
+            current_events = self.cursor.execute('SELECT "company_events" FROM "companies" WHERE "company_name" = ?',
+                                                 (company_name,)).fetchone()[0]
+            if event in current_events:
+                current_events = current_events.replace(event, '').strip().replace('  ', ' ')
+                if current_events == ' ':
+                    current_events = ''
+            else:
+                if current_events:
+                    current_events += ' '
+                current_events += event
+
+            self.cursor.execute('UPDATE "companies" SET "company_events" = ? WHERE "company_name" = ?',
+                                (current_events, company_name))
+            return current_events
 
     def delete_company(self, company_name: str):
         with self.connection:
@@ -188,11 +238,37 @@ class ProjectsDatabase:
                                        'FROM "companies" WHERE "by_project_name" = ?',
                                        (project_name,)).fetchall()
 
-    def get_company_attributes(self, company_name: str):
+    def get_company_recp_channels(self, company_name: str):
+        with self.connection:
+            return self.cursor.execute('SELECT "recipient_chat_id" FROM "companies" '
+                                       'WHERE "company_name" = ?',
+                                       (company_name,)).fetchone()
+
+    def get_company_attribute(self, attribute: str, company_name: str):
+        with self.connection:
+            return self.cursor.execute(F'SELECT "{attribute}" FROM "companies" '
+                                       F'WHERE "company_name" = ?',
+                                       (company_name,)).fetchone()[0]
+
+    def get_all_company_attributes(self, company_name: str):
         with self.connection:
             return self.cursor.execute('SELECT * FROM "companies" WHERE "company_name" = ?',
                                        (company_name,)).fetchone()
 
+    def count_bot_companies(self, bot_task: str, account_id: int):
+        with self.connection:
+            return self.cursor.execute(f'SELECT COUNT(*) FROM "companies" WHERE {bot_task} = ?',
+                                       (account_id,)).fetchone()[0]
+
+    def count_manager_projects(self, account_id: int):
+        with self.connection:
+            return self.cursor.execute(f'SELECT COUNT(*) FROM "projects" WHERE "managers_list" LIKE %{account_id}%').fetchone()[0]
+
+    def count_all(self):  # only for team-leads
+        with self.connection:
+            project_counter = self.cursor.execute('SELECT COUNT(*) FROM "projects"').fetchone()[0]
+            companies_counter = self.cursor.execute('SELECT COUNT(*) FROM "companies"').fetchone()[0]
+            return project_counter, companies_counter
 
 # class CompaniesDatabase:
 #     def __init__(self, project_name: str):

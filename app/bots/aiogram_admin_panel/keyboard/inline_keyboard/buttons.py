@@ -1,3 +1,4 @@
+from math import ceil
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
@@ -185,10 +186,10 @@ projects_main_markup = InlineKeyboardMarkup(inline_keyboard=[
 def create_after_company_markup(project_name: str, company_name: str):
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="К проекту", callback_data=f"choose_project_{project_name}")
+            InlineKeyboardButton(text="Настройки компании", callback_data=f"settings_company_{company_name}")
         ],
         [
-            InlineKeyboardButton(text="Настройки компании", callback_data=f"settings_company_{company_name}")
+            InlineKeyboardButton(text="К проекту", callback_data=f"choose_project_{project_name}")
         ]
     ])
     return markup
@@ -196,13 +197,49 @@ def create_after_company_markup(project_name: str, company_name: str):
 
 # Функция создания клавиатуры с выбором проекта
 
-def create_projects_markup(projects: list):
-    markup = InlineKeyboardBuilder()
+def create_projects_buttons(projects: list):
     buttons = []
     for project in projects:
         buttons.append(InlineKeyboardButton(text=project[0], callback_data=f"choose_project_{project[0]}"))
-    markup.add(*buttons)
-    return markup.adjust(2).as_markup()
+    return buttons
+
+
+# Функция навигация по проектам(меню с кнопками перемещения и выбора проекта)
+
+def build_projects_markup(projects: list, current_page: int):
+    markup = InlineKeyboardBuilder()
+
+    buttons_list = create_projects_buttons(projects=projects)
+
+    if buttons_list:
+        for button_ind in range(4 * (current_page - 1), (current_page - 1) + 4):
+            if button_ind >= len(buttons_list):
+                break
+
+            markup.row(buttons_list[button_ind])
+
+    if current_page == 1:
+        first = "current"
+        prev = "current"
+    else:
+        first = 1
+        prev = current_page - 1
+
+    if current_page == ceil(len(buttons_list) / 4):
+        last = "current"
+        nxt = "current"
+    else:
+        last = ceil(len(buttons_list) / 4)
+        nxt = current_page + 1
+
+    markup.row(InlineKeyboardButton(text="1", callback_data=f"navigation_projects_{first}"),
+               InlineKeyboardButton(text="<", callback_data=f"navigation_projects_{prev}"),
+               InlineKeyboardButton(text=str(current_page), callback_data="navigation_projects_current"),
+               InlineKeyboardButton(text=">", callback_data=f"navigation_projects_{nxt}"),
+               InlineKeyboardButton(text=str(ceil(len(buttons_list) / 4)),
+                                    callback_data=f"navigation_projects_{last}"))
+    markup.row(InlineKeyboardButton(text="Назад", callback_data="back_to_projects_menu"))
+    return markup.as_markup()
 
 
 # Функция создания кнопок с выбором компании
@@ -235,19 +272,19 @@ def build_companies_markup(companies: list, project_name: str, current_page: int
         first = 1
         prev = current_page - 1
 
-    if current_page == ((len(buttons_list) // 4) + len(buttons_list) % 4):
+    if current_page == ceil(len(buttons_list) / 4):
         last = "current"
         nxt = "current"
     else:
-        last = (len(buttons_list) // 4) + len(buttons_list) % 4
+        last = ceil(len(buttons_list) / 4)
         nxt = current_page + 1
 
-    markup.row(InlineKeyboardButton(text="1", callback_data=f"navigation_project_{first}"),
-               InlineKeyboardButton(text="<", callback_data=f"navigation_project_{prev}"),
-               InlineKeyboardButton(text=str(current_page), callback_data="navigation_project_current"),
-               InlineKeyboardButton(text=">", callback_data=f"navigation_project_{nxt}"),
-               InlineKeyboardButton(text=str(((len(buttons_list) // 4) + len(buttons_list) % 4)),
-                                    callback_data=f"navigation_project_{last}"))
+    markup.row(InlineKeyboardButton(text="1", callback_data=f"navigation_companies_{first}"),
+               InlineKeyboardButton(text="<", callback_data=f"navigation_companies_{prev}"),
+               InlineKeyboardButton(text=str(current_page), callback_data="navigation_companies_current"),
+               InlineKeyboardButton(text=">", callback_data=f"navigation_companies_{nxt}"),
+               InlineKeyboardButton(text=str(ceil(len(buttons_list) / 4)),
+                                    callback_data=f"navigation_companies_{last}"))
     markup.row(InlineKeyboardButton(text="Настройки", callback_data=f"settings_project_{project_name}"))
     markup.row(InlineKeyboardButton(text="Назад", callback_data="back_to_projects"))
     return markup.as_markup()
@@ -265,6 +302,9 @@ def create_project_settings_markup(project_name: str):
             InlineKeyboardButton(text="Удалить", callback_data=f"delete_project_{project_name}")
         ],
         [
+            InlineKeyboardButton(text="Добавить компанию", callback_data=f"add_company_{project_name}")
+        ],
+        [
             InlineKeyboardButton(text="Назад", callback_data=f"choose_project_{project_name}")
         ]
     ])
@@ -273,7 +313,7 @@ def create_project_settings_markup(project_name: str):
 
 # Функция создания клавиатуры настроек компании
 
-def create_company_settings_markup(company_name: str, project_name: str):
+def create_company_settings_markup(company_name: str):
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="Запустить", callback_data=f"launch_company_{company_name}")
@@ -291,7 +331,121 @@ def create_company_settings_markup(company_name: str, project_name: str):
             InlineKeyboardButton(text="Удалить", callback_data=f"delete_company_{company_name}")
         ],
         [
-            InlineKeyboardButton(text="Назад", callback_data=f"choose_project_{project_name}")
+            InlineKeyboardButton(text="Назад", callback_data=f"choose_company_{company_name}")
+        ]
+    ])
+    return markup
+
+
+# Клавиатура редактирования компании
+
+def create_edit_company_markup(company_name: str):
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Каналы назначения",
+                                 callback_data=f"edit_dest_channels_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Сбор обсуждения",
+                                 callback_data=f"edit_comments_collecting_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="События на источнике",
+                                 callback_data=f"edit_source_events_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Назад",
+                                 callback_data=f"settings_company_{company_name}")
+        ]
+    ])
+    return markup
+
+
+# Отдельная кнопка назад для возврата к настройкам
+
+def create_back_to_settings_markup(company_name: str):
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Назад",
+                                 callback_data=f"back_settings_{company_name}")
+        ]
+    ])
+    return markup
+
+
+# Клавиатура раздела "Каналы назначения"
+
+def create_edit_dest_channels_markup(company_name: str, amount_of_channels: int):
+    markup = InlineKeyboardBuilder()
+    markup.button(text="Добавить канал назначения",
+                  callback_data=f"add_recp_channel_{company_name}")
+
+    if amount_of_channels > 1:
+        markup.button(text="Удалить канал назначения",
+                      callback_data=f"del_recp_channel_{company_name}")
+
+    markup.button(text="Назад",
+                  callback_data=f"edit_company_{company_name}")
+    return markup.adjust(1).as_markup()
+
+
+# Клавиатура выбора способа сбора обсуждения
+
+def create_collect_comments_markup(company_name: str):
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="За всё время",
+                                 callback_data=f"collecting_way_all_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="По выбору периода",
+                                 callback_data=f"collecting_way_period_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="По ссылкам",
+                                 callback_data=f"collecting_way_links_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Добавить секретаря",
+                                 callback_data=f"add_comments_secretary_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Назад",
+                                 callback_data=f"edit_company_{company_name}")
+        ]
+    ])
+    return markup
+
+
+# Клавиатура выбора событий для отслеживания
+
+def create_choose_events_markup(company_name: str, current_events: list):
+    pin = delete = edit = "❌"
+
+    for event in current_events:
+        if event == "pin":
+            pin = "✅"
+        elif event == "delete":
+            delete = "✅"
+        elif event == "edit":
+            edit = "✅"
+
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Закрепеление поста" + pin,
+                                 callback_data=f"choose_event_pin_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Удаление поста" + delete,
+                                 callback_data=f"choose_event_delete_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Редактирование поста" + edit,
+                                 callback_data=f"choose_event_edit_{company_name}")
+        ],
+        [
+            InlineKeyboardButton(text="Назад",
+                                 callback_data=f"edit_company_{company_name}")
         ]
     ])
     return markup

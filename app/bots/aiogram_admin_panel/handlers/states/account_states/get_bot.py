@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import types, Router, Bot
 from aiogram.fsm.context import FSMContext
 from app.bots.aiogram_admin_panel.state.state_init import GetBot
@@ -153,9 +155,12 @@ async def get_bot_token(message: types.Message, state: FSMContext, bot: Bot):
         values_to_add = [bot_task, proxy, bot_token, None, api_id, api_hash, name, username]
         accounts_db.add_bot_account(values=values_to_add)
 
-        await bot.send_message(text=f"Аккаунт успешно добавлен как {bot_task}",
-                               chat_id=message.chat.id)
-        await accounts_bots(call=message, bot=bot)
+        msg = await bot.send_message(text=f"Аккаунт успешно добавлен как {bot_task}",
+                                     chat_id=message.chat.id)
+
+        await asyncio.sleep(2)
+
+        await accounts_bots(call=msg, bot=bot)
         await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_bot_token: %s", e)

@@ -30,5 +30,14 @@ class GetCompanyAttributes(StatesGroup):
     get_sender = State()
     get_source_channel = State()
     get_recipient_channel = State()
-    change_company_name = State()
+
+
+class EditCompanyAttributes(StatesGroup):
+    edit_company_name = State()
     delete_company = State()
+    add_recipient_channel = State()
+    delete_recipient_channel = State()
+    edit_collecting_way = State()
+    edit_collecting_period = State()
+    edit_collecting_links = State()
+

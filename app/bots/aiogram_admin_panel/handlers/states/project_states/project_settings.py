@@ -29,7 +29,7 @@ async def change_project_name(message: types.Message, state: FSMContext, bot: Bo
                                               reply_markup=ReplyKeyboardRemove())
             current_name = message.text
 
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(2)
 
         await bot.delete_message(chat_id=message.chat.id,
                                  message_id=sent_msg.message_id)

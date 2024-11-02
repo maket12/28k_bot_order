@@ -35,7 +35,7 @@ async def get_project_name(message: types.Message, state: FSMContext, bot: Bot):
                                           reply_to_message_id=message.message_id)
         await state.clear()
         await state.update_data(project_name=project_name)
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(2)
 
         await bot.delete_message(chat_id=message.from_user.id, message_id=sent_msg.message_id)
         await add_company(call=message, state=state, bot=bot)

@@ -5,14 +5,16 @@ from aiogram.types import ReplyKeyboardRemove
 from aiogram.fsm.context import FSMContext
 from app.bots.aiogram_admin_panel.handlers.inline_buttons.projects.projects import add_project
 from app.bots.aiogram_admin_panel.state.state_init import GetCompanyAttributes
-from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import parsing_regime_markup, create_receivers_markup, \
-    request_chat_markup
+from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import parsing_regime_markup, \
+    request_chat_markup, create_bots_markup
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_after_company_markup
 from app.bots.aiogram_admin_panel.handlers.inline_buttons.projects.companies import add_company
-from app.services.database.database_code import ProjectsDatabase
+from app.services.database.database_code import ProjectsDatabase, AccountsDatabase
 from app.services.logs.logging import logger
 
 projects_db = ProjectsDatabase()
+
+accounts_db = AccountsDatabase()
 
 router = Router()
 
@@ -47,7 +49,7 @@ async def get_parsing_regime(message: types.Message, state: FSMContext, bot: Bot
         if message.text == "Назад":
             sent_msg = await bot.send_message(text="Возвращаемся к созданию компании...",
                                               chat_id=message.from_user.id)
-            await asyncio.sleep(1.5)
+            await asyncio.sleep(2)
             await bot.delete_message(chat_id=message.from_user.id, message_id=sent_msg.message_id)
             await add_company(call=message, state=state, bot=bot)
             return
@@ -63,8 +65,12 @@ async def get_parsing_regime(message: types.Message, state: FSMContext, bot: Bot
             return
         await state.update_data(parsing_regime=parsing_regime)
 
+        usernames = accounts_db.get_all_accounts_usernames(task="agent")
         await bot.send_message(text="Отлично! Теперь выберите бота-слушателя из предложенных",
-                               chat_id=message.chat.id, reply_markup=create_receivers_markup())
+                               chat_id=message.chat.id,
+                               reply_markup=create_bots_markup(
+                                   account_usernames=usernames)
+                               )
 
         await state.set_state(GetCompanyAttributes.get_receiver)
     except Exception as e:
@@ -84,8 +90,12 @@ async def get_receiver(message: types.Message, state: FSMContext, bot: Bot):
         receiver_account = message.text
         await state.update_data(receiver_account=receiver_account)
 
+        usernames = accounts_db.get_all_accounts_usernames(task="posts")
         await bot.send_message(text="Теперь выберите бота-отправителя из предложенных: ",
-                               chat_id=message.chat.id, reply_markup=create_receivers_markup())  # Заменить!
+                               chat_id=message.chat.id,
+                               reply_markup=create_bots_markup(
+                                   account_usernames=usernames)
+                               )
 
         await state.set_state(GetCompanyAttributes.get_sender)
     except Exception as e:
@@ -96,8 +106,12 @@ async def get_receiver(message: types.Message, state: FSMContext, bot: Bot):
 async def get_sender(message: types.Message, state: FSMContext, bot: Bot):
     try:
         if message.text == "Назад":
+            usernames = accounts_db.get_all_accounts_usernames(task="agent")
             await bot.send_message(text="Отлично! Теперь выберите бота-слушателя из предложенных",
-                                   chat_id=message.chat.id, reply_markup=create_receivers_markup())
+                                   chat_id=message.chat.id,
+                                   reply_markup=create_bots_markup(
+                                       account_usernames=usernames)
+                                   )
 
             await state.set_state(GetCompanyAttributes.get_receiver)
             return
@@ -129,8 +143,12 @@ async def get_source_channel(message: types.ChatShared | types.Message, state: F
                 source_chat_type = "forum"
         else:
             if message.text == "Назад":
+                usernames = accounts_db.get_all_accounts_usernames(task="posts")
                 await bot.send_message(text="Теперь выберите бота-отправителя из предложенных: ",
-                                       chat_id=message.chat.id, reply_markup=create_receivers_markup())  # Заменить!
+                                       chat_id=message.chat.id,
+                                       reply_markup=create_bots_markup(
+                                           account_usernames=usernames
+                                       ))
 
                 await state.set_state(GetCompanyAttributes.get_sender)
                 return
@@ -186,7 +204,6 @@ async def get_recipient_channel(message: types.ChatShared | types.Message, state
 
         projects_db.add_company(company_attributes=attributes)
 
-        await state.clear()
         await bot.send_message(text="Компания успешно добавлена!",
                                chat_id=message.chat.id,
                                reply_markup=ReplyKeyboardRemove())
@@ -196,5 +213,7 @@ async def get_recipient_channel(message: types.ChatShared | types.Message, state
                                    project_name=state_data['project_name'],
                                    company_name=state_data['company_name']
                                ))
+
+        await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_recipient_channel: %s", e)
