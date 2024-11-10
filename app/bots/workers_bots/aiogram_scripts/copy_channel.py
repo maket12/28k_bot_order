@@ -51,49 +51,49 @@ async def main(token: str | None, company_name: str | None):
         for post in all_posts:
             logger.info("Тут копируем...")
             if last_media_group_id:
-                if post[15] != last_media_group_id:
+                if post[16] != last_media_group_id:
                     await bot.send_media_group(media=media_group.build(), chat_id=recipient_chat_id)
                     media_group = MediaGroupBuilder()
 
                 if post[0]:
                     if not media_group.caption:
                         media_group.caption = post[0]
-                if post[14] == "photo":
+                if post[15] == "photo":
                     media_group.add_photo(media=post[1])
-                elif post[14] == "video":
+                elif post[15] == "video":
                     media_group.add_video(media=post[2])
-                elif post[14] == "audio":
+                elif post[15] == "audio":
                     media_group.add_audio(media=post[3])
-                elif post[14] == "document":
+                elif post[15] == "document":
                     media_group.add_document(media=post[4])
             else:
-                if post[14] == "text":
+                if post[15] == "text":
                     await bot.send_message(text=post[0], chat_id=recipient_chat_id)
-                elif post[14] == "photo":
+                elif post[15] == "photo":
                     await bot.send_photo(photo=post[1], chat_id=recipient_chat_id)
-                elif post[14] == "video":
+                elif post[15] == "video":
                     await bot.send_video(video=post[2], chat_id=recipient_chat_id)
-                elif post[14] == "audio":
+                elif post[15] == "audio":
                     await bot.send_audio(audio=post[3], chat_id=recipient_chat_id)
-                elif post[14] == "document":
+                elif post[15] == "document":
                     await bot.send_document(document=post[4], chat_id=recipient_chat_id)
-                elif post[14] == "video_note":
+                elif post[15] == "video_note":
                     await bot.send_video_note(video_note=post[5], chat_id=recipient_chat_id)
-                elif post[14] == "voice":
+                elif post[15] == "voice":
                     await bot.send_voice(voice=post[6], chat_id=recipient_chat_id)
-                elif post[14] == "sticker":
+                elif post[15] == "sticker":
                     await bot.send_sticker(sticker=post[7], chat_id=recipient_chat_id)
-                elif post[14] == "location":
+                elif post[15] == "location":
                     continue
                     # await bot.send_location(latitude=, lon)
-                elif post[14] == "contact":
+                elif post[15] == "contact":
                     continue
                     # await bot.send_contact(phone_number=, first_name=)
                 else:
                     continue
                     # await bot.send_poll()
 
-            last_media_group_id = post[15]
+            last_media_group_id = post[16]
             await asyncio.sleep(5)
         logger.debug("Закончили копировать.")
 
