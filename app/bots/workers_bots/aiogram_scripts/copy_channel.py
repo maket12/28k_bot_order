@@ -93,18 +93,23 @@ async def main(token: str | None, company_name: str | None):
                     await bot.send_message(text=post[1], chat_id=recipient_chat_id)
                 elif post[15] == "photo":
                     await bot.send_photo(photo=FSInputFile(get_full_media_path(post[2])),
+                                         caption=post[1],
                                          chat_id=recipient_chat_id)
                 elif post[15] == "video":
                     await bot.send_video(video=FSInputFile(get_full_media_path(post[3])),
+                                         caption=post[1],
                                          chat_id=recipient_chat_id)
                 elif post[15] == "audio":
                     await bot.send_audio(audio=FSInputFile(get_full_media_path(post[4])),
+                                         caption=post[1],
                                          chat_id=recipient_chat_id)
                 elif post[15] == "document":
-                    path = get_full_media_path(post[5])
-                    if path:
-                        await bot.send_document(document=FSInputFile(path),
-                                                chat_id=recipient_chat_id)
+                    continue
+                    # path = get_full_media_path(post[5])
+                    # if path:
+                    #     await bot.send_document(document=FSInputFile(path),
+                    #                             caption=post[1],
+                    #                             chat_id=recipient_chat_id)
                 elif post[15] == "video_note":
                     await bot.send_video_note(video_note=FSInputFile(get_full_media_path(post[6])),
                                               chat_id=recipient_chat_id)
