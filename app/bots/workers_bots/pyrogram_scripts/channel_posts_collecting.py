@@ -52,7 +52,7 @@ async def main(session_path: str | None, company_name: str | None):
         source_chat_id, source_chat_type, recipient_chat_id, recipient_chat_type = projects_db.get_chat_ids_by_company(company_name=company_name)
 
         async for chat in app.get_dialogs():
-            logger.info(f"Чат агента: {chat.chat}")
+            logger.info(f"Чат агента: {chat.chat.username}, {chat.chat.id}")
 
         await app.join_chat(chat_id=source_chat_id)
         chat = await app.get_chat(chat_id=source_chat_id)
