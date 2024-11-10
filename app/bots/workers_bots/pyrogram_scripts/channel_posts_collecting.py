@@ -112,7 +112,7 @@ async def main(session_path: str | None, company_name: str | None):
                     post_data[11] = message.animation.file_id
                     post_data[14] = "animation"
                 else:
-                    logger.warning("Unknowing message object: %s", message.t)
+                    logger.warning("Unknowing message object: %s", message.link)
                     continue
             if message.reply_markup:
                 if message.reply_markup.keyboard:
