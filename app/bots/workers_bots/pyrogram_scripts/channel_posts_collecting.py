@@ -1,5 +1,6 @@
 import asyncio
 import sys
+import os
 from pyrogram import Client
 from app.bots.workers_bots.pyrogram_scripts.utils.parsing_posts_utils.entities_parsing import parse_entities
 from app.services.database.database_code import ProjectsDatabase, AccountsDatabase, ChatDatabase
@@ -22,6 +23,15 @@ def get_client(session_path: str):
     except Exception as e:
         logger.error("Возникла ошибка при инициализации клиента: %s", e)
         return False
+
+
+def get_download_path():
+    try:
+        curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        path = os.path.join(curr_dir, f"media/")
+        return path
+    except Exception as e:
+        logger.error("Возникла ошибка в download_file: %s", e)
 
 
 async def main(session_path: str | None, company_name: str | None):
@@ -79,6 +89,9 @@ async def main(session_path: str | None, company_name: str | None):
                 post_data[0] = message.text
                 post_data[14] = "text"
             else:
+                if message.media:
+                    await app.download_media(message=message.file_id,
+                                             file_name=get_download_path())
                 if message.caption:
                     post_data[0] = message.caption
 
