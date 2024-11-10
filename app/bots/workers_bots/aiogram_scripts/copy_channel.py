@@ -29,9 +29,12 @@ def get_full_media_path(file_id: str):
         curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
         target_dir = os.path.join(curr_dir, f"media")
 
+        logger.debug(f"File_id: {file_id}")
+
         # Ищем файл, начинающийся с file_id
         file_path = None
         for file_name in os.listdir(target_dir):
+            logger.debug(f"Found file: {file_name}")
             # Проверяем, начинается ли имя файла с file_id
             if file_name.startswith(file_id):
                 file_path = os.path.join(target_dir, file_name)
