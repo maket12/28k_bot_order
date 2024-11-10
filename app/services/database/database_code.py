@@ -129,6 +129,8 @@ class ProjectsDatabase:
             with open(absolute_path, 'w'):  # Создаём файл, если он не существует
                 pass
 
+        logger.warning(absolute_path)
+
         self.connection = sqlite3.connect(absolute_path)
         self.cursor = self.connection.cursor()
 
@@ -272,8 +274,8 @@ class ProjectsDatabase:
 
     def get_company_attribute(self, attribute: str, company_name: str):
         with self.connection:
-            result =  self.cursor.execute(f'SELECT "{attribute}" FROM "companies" '
-                                       F'WHERE "company_name" = ?',
+            result = self.cursor.execute(f'SELECT "{attribute}" FROM "companies" '
+                                       f'WHERE "company_name" = ?',
                                        (company_name,)).fetchone()
             logger.warning(result)
             return result[0]
