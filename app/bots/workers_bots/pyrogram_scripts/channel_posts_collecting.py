@@ -90,7 +90,7 @@ async def main(session_path: str | None, company_name: str | None):
                 post_data[14] = "text"
             else:
                 if message.media:
-                    await app.download_media(message=message.file_id,
+                    await app.download_media(message=message,
                                              file_name=get_download_path())
                 if message.caption:
                     post_data[0] = message.caption
