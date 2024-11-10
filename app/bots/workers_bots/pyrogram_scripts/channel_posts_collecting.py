@@ -51,12 +51,15 @@ async def main(session_path: str | None, company_name: str | None):
 
         source_chat_id, source_chat_type, recipient_chat_id, recipient_chat_type = projects_db.get_chat_ids_by_company(company_name=company_name)
 
+        async for chat in app.get_dialogs():
+            logger.info(f"Чат агента: {chat.chat}")
+
         await app.join_chat(chat_id=source_chat_id)
         chat = await app.get_chat(chat_id=source_chat_id)
 
         logger.info(chat.type)
 
-        chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=source_chat_id)
+        chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
 
         post_data = [None, None, None, None, None, None, None, None, None, None,
                      None, None, None, None, None, None, None]
@@ -125,7 +128,7 @@ async def main(session_path: str | None, company_name: str | None):
 
             chat_db.add_post(post_data=post_data)
 
-        all_chats_db.add_chat(chat_id=source_chat_id, chat_type=source_chat_type)
+        all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
 
         logger.debug("Закончили сбор")
         await app.stop()
