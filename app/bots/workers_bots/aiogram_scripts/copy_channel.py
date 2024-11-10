@@ -1,6 +1,6 @@
 import asyncio
 import sys
-from aiogram import Bot
+from aiogram import Bot, Dispatcher
 from aiogram.utils.media_group import MediaGroupBuilder
 from app.services.database.database_code import ProjectsDatabase, AccountsDatabase, ChatDatabase
 from app.services.database.database_code import AllChatsDatabase
@@ -24,6 +24,7 @@ def get_bot(token: str):
 
 
 async def main(token: str | None, company_name: str | None):
+    dp = Dispatcher()
     try:
         logger.debug("Начинаем копирование")
         if not token:
@@ -36,6 +37,8 @@ async def main(token: str | None, company_name: str | None):
         bot = get_bot(token=token)
         if not bot:
             return
+
+        await dp.start_polling(bot)
 
         source_chat_id, source_chat_type, recipient_chat_id, recipient_chat_type = projects_db.get_chat_ids_by_company(
             company_name=company_name)
@@ -99,6 +102,8 @@ async def main(token: str | None, company_name: str | None):
 
     except Exception as e:
         logger.error("Возникла ошибка в copy_channel: %s", e)
+    finally:
+        await dp.stop_polling()
 
 
 if __name__ == "__main__":
