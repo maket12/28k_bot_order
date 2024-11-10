@@ -34,9 +34,9 @@ def get_full_media_path(file_id: str):
         # Ищем файл, начинающийся с file_id
         file_path = None
         for file_name in os.listdir(target_dir):
-            logger.debug(f"Found file: {file_name}")
             # Проверяем, начинается ли имя файла с file_id
             if file_name.startswith(file_id):
+                logger.debug(f"Found file: {file_name}")
                 file_path = os.path.join(target_dir, file_name)
                 break  # Останавливаемся при нахождении первого совпадения
         return file_path
@@ -80,7 +80,7 @@ async def main(token: str | None, company_name: str | None):
                     if not media_group.caption:
                         media_group.caption = post[1]
                 if post[15] == "photo":
-                    media_group.add_photo(media=get_full_media_path(file_id=post[2]))
+                    media_group.add_photo(media=get_full_media_path(post[2]))
                 elif post[15] == "video":
                     media_group.add_video(media=get_full_media_path(post[3]))
                 elif post[15] == "audio":
