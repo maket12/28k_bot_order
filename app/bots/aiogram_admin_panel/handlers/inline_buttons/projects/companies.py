@@ -89,7 +89,7 @@ async def launch_company(call: types.CallbackQuery, bot: Bot):
         subprocess_station.set_script_path(script_type="pyrogram",
                                            script_name="channel_posts_collecting.py")
         subprocess_station.set_input_data(data=f"{agent_account}.session")
-        subprocess_station.set_company_name(company=company_name)
+        subprocess_station.set_company_name(company="Ещё один тест")
         subprocess_station.run_script(script_name="channel_posts_collecting.py")
 
         await call.answer(text="Компания успешно запущена!",
