@@ -125,7 +125,7 @@ async def main(token: str | None, company_name: str | None):
 
             last_media_group_id = post[16]
             await asyncio.sleep(5)
-        logger.debug("Закончили копировать.")
+        logger.debug("Закончили копировать!")
 
     except Exception as e:
         logger.error("Возникла ошибка в copy_channel: %s", e)
