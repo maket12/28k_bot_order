@@ -393,7 +393,7 @@ class ChatDatabase:
                                        '"sticker", "location", "contact", '
                                        '"poll", "animation", "markup", "entities", '
                                        '"post_type", "post_media_group_id", "post_message_id") '
-                                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                                        post_data)
 
     def add_comment(self, comment_data: list):
