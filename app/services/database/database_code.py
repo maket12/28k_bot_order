@@ -340,7 +340,7 @@ class AllChatsDatabase:
         with self.connection:
             result = self.cursor.execute('SELECT 1 FROM "all_chats" WHERE "chat_id" = ?',
                                        (chat_id,)).fetchone()
-            if not result:
+            if result:
                 result = result[0]
             return result
 
