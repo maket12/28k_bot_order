@@ -1,5 +1,5 @@
 from pyrogram import Client, types
-from pyrogram.errors import SessionPasswordNeeded
+from pyrogram.errors import SessionPasswordNeeded, BadRequest
 from app.services.logs.logging import logger
 
 
@@ -27,4 +27,17 @@ async def check_pyrogram_code(app: Client, auth_code: str, code_info: types.Sent
         return "password needed", app
     except Exception as e:
         logger.error("Возникла ошибка в check_pyrogram_code:", e)
+        return False
+
+
+async def check_pyrogram_password(app: Client, password: str):
+    try:
+        await app.check_password(password=password)
+        info = await app.get_me()
+        return info.first_name, info.username
+    except BadRequest:
+        logger.error("Введён неверный пароль от аккаунта!")
+        return False
+    except Exception as e:
+        logger.error("Возникла ошибка в check_pyrogram_password: %s", e)
         return False

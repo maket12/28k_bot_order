@@ -30,6 +30,7 @@ class GetCompanyAttributes(StatesGroup):
     get_sender = State()
     get_source_channel = State()
     get_recipient_channel = State()
+    get_comments_account = State()
 
 
 class EditCompanyAttributes(StatesGroup):

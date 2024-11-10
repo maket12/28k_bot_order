@@ -5,7 +5,7 @@ def create_text(company_attributes: tuple):
     try:
         if company_attributes[3] == "grabbing":
             parsing_regime = "Парсинг истории чата"
-            company_additional_data = f"Парсинг: {company_attributes[10]}"
+            company_additional_data = f"Режим парсинга: <b>{company_attributes[10] if company_attributes[10] else "Не выбран"}</b>"
         else:
             parsing_regime = "Прослушка чата"
             company_additional_data = f"События: <b>{"Есть" if company_attributes[11] else "не установлены"}</b>"

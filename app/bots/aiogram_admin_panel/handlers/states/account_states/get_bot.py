@@ -8,7 +8,8 @@ from app.bots.aiogram_admin_panel.handlers.inline_buttons.accounts.accounts impo
 from app.bots.aiogram_admin_panel.handlers.inline_buttons.accounts.accounts import accounts_secretary_posts, accounts_secretary_comments, accounts_agent_bot
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import proxy_markup, single_back_markup
 from app.bots.workers_bots.aiogram_scripts.check_connection import check_aiogram_connection
-from app.bots.workers_bots.pyrogram_scripts.check_connection import check_pyrogram_connection, check_pyrogram_code
+from app.bots.workers_bots.pyrogram_scripts.check_connection import check_pyrogram_connection, check_pyrogram_code, \
+    check_pyrogram_password
 from app.services.database.database_code import AccountsDatabase
 from app.services.logs.logging import logger
 
@@ -61,6 +62,7 @@ async def get_proxy_type(call: types.CallbackQuery, state: FSMContext, bot: Bot)
         await state.update_data(proxy_type=proxy_type)
     except Exception as e:
         logger.error("Возникла ошибка в get_proxy_type: %s", e)
+        await state.clear()
 
 
 @router.callback_query(GetBot.get_proxy_data)
@@ -78,6 +80,7 @@ async def get_proxy_data_call(call: types.CallbackQuery, state: FSMContext, bot:
             await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_proxy_data_call: %s", e)
+        await state.clear()
 
 
 @router.message(GetBot.get_proxy_data)
@@ -110,6 +113,7 @@ async def get_proxy_data(message: types.Message, state: FSMContext, bot: Bot):
             return
     except Exception as e:
         logger.error("Возникла ошибка в get_proxy_data: %s", e)
+        await state.clear()
 
 
 @router.callback_query(GetBot.get_token)
@@ -127,6 +131,7 @@ async def get_bot_token_call(call: types.CallbackQuery, state: FSMContext, bot: 
             await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_bot_token_call", e)
+        await state.clear()
 
 
 @router.message(GetBot.get_token)
@@ -155,15 +160,16 @@ async def get_bot_token(message: types.Message, state: FSMContext, bot: Bot):
         values_to_add = [bot_task, proxy, bot_token, None, api_id, api_hash, name, username]
         accounts_db.add_bot_account(values=values_to_add)
 
-        msg = await bot.send_message(text=f"Аккаунт успешно добавлен как {bot_task}",
-                                     chat_id=message.chat.id)
+        await bot.send_message(text=f"Аккаунт успешно добавлен как {bot_task}",
+                               chat_id=message.chat.id)
 
         await asyncio.sleep(2)
 
-        await accounts_bots(call=msg, bot=bot)
+        await accounts_bots(call=message, bot=bot)
         await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_bot_token: %s", e)
+        await state.clear()
 
 
 @router.callback_query(GetBot.get_phone_number)
@@ -181,12 +187,13 @@ async def get_phone_number_call(call: types.CallbackQuery, state: FSMContext, bo
             await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_phone_number_call: %s", e)
+        await state.clear()
 
 
 @router.message(GetBot.get_phone_number)
 async def get_phone_number(message: types.Message, state: FSMContext, bot: Bot):
     try:
-        await state.update_data(phone_number=message.text)
+        await state.update_data(phone_number=message.text.replace(' ', ''))
         await bot.send_message(
             text="Теперь введите данные от приложения: api_id и api_hash.\n"
                  "Их можно получить, создав приложение на <a href='https://my.telegram.org'>сайте</a>.",
@@ -197,6 +204,7 @@ async def get_phone_number(message: types.Message, state: FSMContext, bot: Bot):
         await state.set_state(GetBot.get_api_id)
     except Exception as e:
         logger.error("Возникла ошибка в get_phone_number: %s", e)
+        await state.clear()
 
 
 @router.callback_query(GetBot.get_api_id)
@@ -215,6 +223,7 @@ async def get_api_id_call(call: types.CallbackQuery, state: FSMContext, bot: Bot
             await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_api_id_call: %s", e)
+        await state.clear()
 
 
 @router.message(GetBot.get_api_id)
@@ -234,6 +243,7 @@ async def get_api_id(message: types.Message, state: FSMContext, bot: Bot):
                                    reply_markup=single_back_markup)
     except Exception as e:
         logger.error("Возникла ошибка в get_api_id: %s", e)
+        await state.clear()
 
 
 @router.callback_query(GetBot.get_api_hash)
@@ -250,13 +260,14 @@ async def get_api_hash_call(call: types.CallbackQuery, state: FSMContext, bot: B
             await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_api_hash_call: %s", e)
+        await state.clear()
 
 
 @router.message(GetBot.get_api_hash)
 async def get_api_hash(message: types.Message, state: FSMContext, bot: Bot):
     try:
         state_data = await state.get_data()
-        phone = state_data["phone_number"]
+        phone = state_data["phone_number"].replace(' ', '')
         api_id = state_data["api_id"]
         api_hash = message.text
         pyrogram_client_info = await check_pyrogram_connection(phone_number=phone,
@@ -275,12 +286,13 @@ async def get_api_hash(message: types.Message, state: FSMContext, bot: Bot):
             await state.set_state(GetBot.get_auth_code)
         else:
             await bot.send_message(text="Возникла ошибка при создании сессии!\n"
-                                        "Проверьте валидность введённых данных!",
-                                   chat_id=message.chat.id)
+                                              "Проверьте валидность введённых данных!",
+                                         chat_id=message.chat.id)
             await accounts_bots(call=message, bot=bot)
             await state.clear()
     except Exception as e:
         logger.error("Возникла ошибка в get_api_hash: %s", e)
+        await state.clear()
 
 
 @router.message(GetBot.get_auth_code)
@@ -295,12 +307,12 @@ async def get_auth_code(message: types.Message, state: FSMContext, bot: Bot):
             pyrogram_client_info = await check_pyrogram_code(app=pyrogram_client, auth_code=auth_code,
                                                              code_info=sent_code_info)
             if isinstance(pyrogram_client_info, tuple) and pyrogram_client_info[0] == "password needed":
-                await state.update_data(pyrogram_client=pyrogram_client[1])
-                await bot.send_message(text="Требуется пароль 2FA, введите его:",
+                await bot.send_message(text="Требуется пароль 2FA, введите его, добавив пробел между буквами в любое место.\n"
+                                            "Пример: pass word",
                                        chat_id=message.chat.id)
-                await accounts_bots(call=message, bot=bot)
-                await state.clear()
-                # await state.set_state(GetBot.get_auth_pass)
+                await state.update_data(pyrogram_client=pyrogram_client_info[1])
+                await state.set_state(GetBot.get_auth_pass)
+                return
             else:
                 if pyrogram_client_info:
                     data_to_add = [state_data['bot_task'], state_data['proxy'], None,
@@ -310,19 +322,52 @@ async def get_auth_code(message: types.Message, state: FSMContext, bot: Bot):
                     accounts_db.add_bot_account(values=data_to_add)
 
                     await bot.send_message(text=f"Аккаунт успешно добавлен как {state_data['bot_task']}",
-                                           chat_id=message.chat.id)
+                                                 chat_id=message.chat.id)
                 else:
                     await bot.send_message(text="Возникла ошибка при инициализации клиента!\n"
-                                                "Проверьте валидность введённых данных!",
-                                           chat_id=message.chat.id)
-
-                await accounts_bots(call=message, bot=bot)
-                await state.clear()
+                                                      "Проверьте валидность введённых данных!",
+                                                 chat_id=message.chat.id)
         else:
             await bot.send_message(text="Некорректная запись кода!",
-                                   chat_id=message.chat.id,)
-            await accounts_bots(call=message, bot=bot)
-            await state.clear()
-    except Exception as e:
+                                         chat_id=message.chat.id)
+        await asyncio.sleep(2)
         await accounts_bots(call=message, bot=bot)
+        await state.clear()
+    except Exception as e:
         logger.error("Возникла ошибка в get_auth_code: %s", e)
+        await state.clear()
+
+
+@router.message(GetBot.get_auth_pass)
+async def get_auth_pass(message: types.Message, state: FSMContext, bot: Bot):
+    try:
+        if ' ' in message.text:
+            state_data = await state.get_data()
+            pyrogram_client = state_data["pyrogram_client"]
+            password = message.text.replace(' ', '')
+
+            pyrogram_client_info = await check_pyrogram_password(app=pyrogram_client,
+                                                                 password=password)
+
+            if pyrogram_client_info:
+                data_to_add = [state_data['bot_task'], state_data['proxy'], None,
+                               state_data['phone_number'], state_data['api_id'],
+                               state_data['api_hash'], pyrogram_client_info[0],
+                               pyrogram_client_info[1]]
+                accounts_db.add_bot_account(values=data_to_add)
+
+                await bot.send_message(text=f"Аккаунт успешно добавлен как {state_data['bot_task']}",
+                                       chat_id=message.chat.id)
+            else:
+                await bot.send_message(text="Возникла ошибка при инициализации клиента!\n"
+                                            "Проверьте валидность пароля!",
+                                       chat_id=message.chat.id)
+        else:
+            await bot.send_message(text="Неверная запись пароля!",
+                                   chat_id=message.chat.id)
+        await asyncio.sleep(2)
+        await accounts_bots(call=message, bot=bot)
+    except Exception as e:
+        logger.error("Возникла ошибка в get_auth_code: %s", e)
+    finally:
+        await state.clear()

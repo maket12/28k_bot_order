@@ -21,7 +21,7 @@ async def get_project_name(message: types.Message, state: FSMContext, bot: Bot):
             await bot.send_message(text="Создание проекта отменено!",
                                    chat_id=message.chat.id,
                                    reply_markup=ReplyKeyboardRemove())
-            await projects(message=message)
+            await projects(message=message, bot=bot)
             await state.clear()
             return
         elif message.text == "Пропустить":
@@ -40,5 +40,5 @@ async def get_project_name(message: types.Message, state: FSMContext, bot: Bot):
         await bot.delete_message(chat_id=message.from_user.id, message_id=sent_msg.message_id)
         await add_company(call=message, state=state, bot=bot)
     except Exception as e:
-        logger.error("Возникла ошибка в get_chat_id: %s", e)
+        logger.error("Возникла ошибка в get_project_name: %s", e)
 

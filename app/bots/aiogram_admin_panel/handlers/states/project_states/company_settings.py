@@ -38,7 +38,8 @@ async def delete_company(call: types.CallbackQuery, state: FSMContext, bot: Bot)
                                     chat_id=call.from_user.id,
                                     message_id=call.message.message_id,
                                     reply_markup=create_company_settings_markup(
-                                        company_name=company_name),
+                                        company_name=company_name,
+                                        company_status=company_attributes[15]),
                                     parse_mode="html", disable_web_page_preview=True
                                     )
         await state.clear()
@@ -91,7 +92,8 @@ async def add_recipient_channel(message: types.ChatShared | types.Message, state
         await bot.send_message(text=create_text(company_attributes=company_attributes),
                                chat_id=message.chat.id,
                                reply_markup=create_company_settings_markup(
-                                   company_name=company_attributes[1]),
+                                   company_name=company_attributes[1],
+                                   company_status=company_attributes[15]),
                                parse_mode="html",
                                disable_web_page_preview=True)
     except Exception as e:
@@ -125,7 +127,8 @@ async def delete_recipient_channel(message: types.ChatShared | types.Message, st
         await bot.send_message(text=create_text(company_attributes=company_attributes),
                                chat_id=message.chat.id,
                                reply_markup=create_company_settings_markup(
-                                   company_name=company_attributes[1]),
+                                   company_name=company_attributes[1],
+                                   company_status=company_attributes[15]),
                                parse_mode="html",
                                disable_web_page_preview=True)
     except Exception as e:
@@ -160,7 +163,8 @@ async def edit_company_name(message: types.Message, state: FSMContext, bot: Bot)
         await bot.send_message(text=create_text(company_attributes=company_attributes),
                                chat_id=message.chat.id,
                                reply_markup=create_company_settings_markup(
-                                   company_name=company_attributes[1]),
+                                   company_name=company_attributes[1],
+                                   company_status=company_attributes[15]),
                                parse_mode="html",
                                disable_web_page_preview=True)
         await state.clear()
@@ -178,7 +182,9 @@ async def edit_collecting_period_callback(message: types.CallbackQuery, state: F
         await bot.edit_message_text(text=create_text(company_attributes=company_attributes),
                                     chat_id=message.from_user.id,
                                     message_id=message.message.message_id,
-                                    reply_markup=create_collect_comments_markup(company_name=company_name),
+                                    reply_markup=create_collect_comments_markup(
+                                        company_name=company_name,
+                                        comments_acc_existing=bool(company_attributes[13])),
                                     parse_mode="html",
                                     disable_web_page_preview=True)
 
@@ -216,7 +222,8 @@ async def edit_collecting_period_message(message: types.Message, state: FSMConte
         await bot.send_message(text=create_text(company_attributes=company_attributes),
                                chat_id=message.chat.id,
                                reply_markup=create_company_settings_markup(
-                                   company_name=company_name),
+                                   company_name=company_name,
+                                   company_status=company_attributes[15]),
                                parse_mode="html",
                                disable_web_page_preview=True)
         await state.clear()
@@ -234,7 +241,9 @@ async def edit_collecting_links_callback(message: types.CallbackQuery, state: FS
         await bot.edit_message_text(text=create_text(company_attributes=company_attributes),
                                     chat_id=message.from_user.id,
                                     message_id=message.message.message_id,
-                                    reply_markup=create_collect_comments_markup(company_name=company_name),
+                                    reply_markup=create_collect_comments_markup(
+                                        company_name=company_name,
+                                        comments_acc_existing=bool(company_attributes[13])),
                                     parse_mode="html",
                                     disable_web_page_preview=True)
 
@@ -272,7 +281,8 @@ async def edit_collecting_links_message(message: types.Message, state: FSMContex
         await bot.send_message(text=create_text(company_attributes=company_attributes),
                                chat_id=message.chat.id,
                                reply_markup=create_company_settings_markup(
-                                   company_name=company_name),
+                                   company_name=company_name,
+                                   company_status=company_attributes[15]),
                                parse_mode="html",
                                disable_web_page_preview=True)
         await state.clear()

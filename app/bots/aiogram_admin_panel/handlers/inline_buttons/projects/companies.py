@@ -1,9 +1,8 @@
 import asyncio
-
 from aiogram import Router, F, types, Bot
 from aiogram.fsm.context import FSMContext
 from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import skip_action_markup, reply_back_markup, \
-    request_chat_markup
+    request_chat_markup, create_bots_markup
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_after_company_markup, \
     create_company_settings_markup, create_edit_dest_channels_markup, create_choose_events_markup, \
     create_collect_comments_markup, create_back_to_settings_markup
@@ -11,12 +10,16 @@ from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create
     create_edit_company_markup
 from app.bots.aiogram_admin_panel.state.state_init import GetCompanyAttributes, EditCompanyAttributes
 from app.bots.aiogram_admin_panel.utils.create_message_text.create_company_info import create_text
-from app.services.database.database_code import ProjectsDatabase
+from app.services.database.database_code import ProjectsDatabase, AccountsDatabase
 from app.services.logs.logging import logger
+from app.services.subprocess_station.subprocess_init import SubprocessStation
 
 router = Router()
 
 projects_db = ProjectsDatabase()
+accounts_db = AccountsDatabase()
+
+subprocess_station = SubprocessStation()
 
 
 @router.callback_query(F.data.startswith("add_company"))
@@ -60,10 +63,14 @@ async def settings_company(call: types.CallbackQuery, bot: Bot):
     try:
         company_name = ''.join(call.data.split('_')[2:])
 
+        company_status = projects_db.get_company_attribute(attribute="company_status",
+                                                           company_name=company_name)
+
         await bot.edit_message_reply_markup(chat_id=call.from_user.id,
                                             message_id=call.message.message_id,
                                             reply_markup=create_company_settings_markup(
                                                 company_name=company_name,
+                                                company_status=company_status
                                             ))
     except Exception as e:
         logger.error("Возникла ошибка в settings_company: %s", e)
@@ -72,7 +79,24 @@ async def settings_company(call: types.CallbackQuery, bot: Bot):
 @router.callback_query(F.data.startswith("launch_company"))
 async def launch_company(call: types.CallbackQuery, bot: Bot):
     try:
-        pass
+        company_name = ''.join(call.data.split('_')[2:])
+        projects_db.set_company_status(company_name=company_name,
+                                       status="active")
+
+        subprocess_station.set_script_path(script_type="pyrogram",
+                                           script_name="channel_posts_collecting.py")
+        subprocess_station.set_input_data(data="leech.session")
+        subprocess_station.set_company_name(company="Канал тест")
+        subprocess_station.run_script(script_name="channel_posts_collecting.py")
+
+        await call.answer(text="Компания успешно запущена!",
+                          show_alert=True)
+        await bot.edit_message_reply_markup(chat_id=call.from_user.id,
+                                            message_id=call.message.message_id,
+                                            reply_markup=create_company_settings_markup(
+                                                company_name=company_name,
+                                                company_status="active"
+                                            ))
     except Exception as e:
         logger.error("Возникла ошибка в launch_company: %s", e)
 
@@ -80,7 +104,18 @@ async def launch_company(call: types.CallbackQuery, bot: Bot):
 @router.callback_query(F.data.startswith("halt_company"))
 async def halt_company(call: types.CallbackQuery, bot: Bot):
     try:
-        pass
+        company_name = ''.join(call.data.split('_')[2:])
+
+        projects_db.annulling_all_company_statuses()
+
+        await call.answer(text="Компания успешно остановлена!",
+                          show_alert=True)
+        await bot.edit_message_reply_markup(chat_id=call.from_user.id,
+                                            message_id=call.message.message_id,
+                                            reply_markup=create_company_settings_markup(
+                                                company_name=company_name,
+                                                company_status="inactive"
+                                            ))
     except Exception as e:
         logger.error("Возникла ошибка в halt_company: %s", e)
 
@@ -192,9 +227,15 @@ async def edit_comments_collecting(call: types.CallbackQuery, bot: Bot):
                               show_alert=True)
             return
 
+        comments_account = projects_db.get_company_attribute(attribute="comments_account",
+                                                             company_name=company_name)
         await bot.edit_message_reply_markup(chat_id=call.from_user.id,
                                             message_id=call.message.message_id,
-                                            reply_markup=create_collect_comments_markup(company_name=company_name))
+                                            reply_markup=create_collect_comments_markup(
+                                                company_name=company_name,
+                                                comments_acc_existing=bool(comments_account)
+                                            )
+                                            )
     except Exception as e:
         logger.error("Возникла ошибка в edit_comments_collecting: %s", e)
 
@@ -259,6 +300,27 @@ async def collecting_way_links(call: types.CallbackQuery, state: FSMContext, bot
         await state.update_data(company_name=company_name)
     except Exception as e:
         logger.error("Возникла ошибка в collecting_way_links: %s", e)
+
+
+@router.callback_query(F.data.startswith("add_comments_secretary"))
+async def add_comments_secretary(call: types.CallbackQuery, state: FSMContext, bot: Bot):
+    try:
+        company_name = ''.join(call.data.split('_')[3:])
+
+        await bot.delete_message(chat_id=call.from_user.id,
+                                 message_id=call.message.message_id)
+
+        usernames = accounts_db.get_all_accounts_usernames(task="comments")
+        await bot.send_message(text="Выберите бота из предложенных в качестве секретаря для комментариев:",
+                               chat_id=call.from_user.id,
+                               reply_markup=create_bots_markup(
+                                   account_usernames=usernames)
+                               )
+
+        await state.set_state(GetCompanyAttributes.get_comments_account)
+        await state.update_data(company_name=company_name)
+    except Exception as e:
+        logger.error("Возникла ошибка в add_comments_secretary: %s", e)
 
 
 @router.callback_query(F.data.startswith("edit_source_events"))

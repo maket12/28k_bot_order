@@ -42,16 +42,19 @@ async def accounts_users(call: types.CallbackQuery | types.Message | types.Conta
 async def accounts_bots(call: types.CallbackQuery | types.Message, bot: Bot):
     try:
         if isinstance(call, types.CallbackQuery):
-            message_id = call.message.message_id
+            await bot.edit_message_text(
+                text="Вы перешли в раздел 'Аккаунты-расходники'\n"
+                     "Для навигации используйте соответствующие кнопки:",
+                chat_id=call.from_user.id,
+                message_id=call.message.message_id,
+                reply_markup=bot_task_markup
+            )
         else:
-            message_id = call.message_id
-
-        await bot.edit_message_text(
-            text="Вы перешли в раздел 'Аккаунты-расходники'\n"
-                 "Для навигации используйте соответствующие кнопки:",
-            chat_id=call.from_user.id,
-            message_id=message_id,
-            reply_markup=bot_task_markup
+            await bot.send_message(
+                text="Вы перешли в раздел 'Аккаунты-расходники'\n"
+                     "Для навигации используйте соответствующие кнопки:",
+                chat_id=call.from_user.id,
+                reply_markup=bot_task_markup
             )
     except Exception as e:
         logger.error("Возникла ошибка в accounts_bots: %s", e)

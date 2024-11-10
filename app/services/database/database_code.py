@@ -99,6 +99,21 @@ class AccountsDatabase:
             return self.cursor.execute('SELECT COUNT(*) FROM "users" WHERE "head_user_id" = ?',
                                        (account_chat_id,)).fetchone()[0]
 
+    def get_attribute_by_username(self, attribute: str, username: str):
+        with self.connection:
+            return self.cursor.execute(f'SELECT "{attribute}" FROM "bots" WHERE "bot_username" = ?',
+                                       (username,)).fetchone()[0]
+
+    def get_username_by_phone(self, phone_number: str):
+        with self.connection:
+            return self.cursor.execute('SELECT "bot_username" FROM "bots" WHERE "phone_number" = ?',
+                                       (phone_number,)).fetchone()[0]
+
+    def get_username_by_token(self, bot_token: str):
+        with self.connection:
+            return self.cursor.execute('SELECT "bot_username" FROM "bots" WHERE "bot_token" = ?',
+                                       (bot_token,)).fetchone()[0]
+
 
 class ProjectsDatabase:
     def __init__(self, db_file="files/projects_database.db"):
@@ -139,7 +154,8 @@ class ProjectsDatabase:
                                 '"company_events" TEXT DEFAULT "",'  # chat_events (edit, pin, delete)
                                 '"person_link_enable" INTEGER,'
                                 '"comments_account" INTEGER,'  # == CHAT_ID
-                                '"comments_format" TEXT)')
+                                '"comments_format" TEXT,'
+                                '"company_status" TEXT DEFAULT "inactive")')
 
     def add_project(self, name: str):
         with self.connection:
@@ -223,6 +239,16 @@ class ProjectsDatabase:
                                 (current_events, company_name))
             return current_events
 
+    def set_company_status(self, company_name: str, status: str):
+        with self.connection:
+            return self.cursor.execute('UPDATE "companies" SET "company_status" = ? '
+                                       'WHERE "company_name" = ?',
+                                       (status, company_name))
+
+    def annulling_all_company_statuses(self):
+        with self.connection:
+            return self.cursor.execute('UPDATE "companies" SET "company_status" = "inactive"')
+
     def delete_company(self, company_name: str):
         with self.connection:
             return self.cursor.execute('DELETE FROM "companies" WHERE "company_name" = ?',
@@ -255,6 +281,16 @@ class ProjectsDatabase:
             return self.cursor.execute('SELECT * FROM "companies" WHERE "company_name" = ?',
                                        (company_name,)).fetchone()
 
+    def get_chat_ids_by_company(self, company_name: str):
+        with self.connection:
+            return self.cursor.execute('SELECT "source_chat_id", "source_chat_type", '
+                                       '"recipient_chat_id", "recipient_chat_type" FROM "companies" '
+                                       'WHERE "company_name" = ?', (company_name,)).fetchone()
+
+    def get_token_by_chat_id(self, source_chat_id: int):
+        with self.connection:
+            return self.cursor.execute('SELECT ""')
+
     def count_bot_companies(self, bot_task: str, account_id: int):
         with self.connection:
             return self.cursor.execute(f'SELECT COUNT(*) FROM "companies" WHERE {bot_task} = ?',
@@ -270,18 +306,102 @@ class ProjectsDatabase:
             companies_counter = self.cursor.execute('SELECT COUNT(*) FROM "companies"').fetchone()[0]
             return project_counter, companies_counter
 
-# class CompaniesDatabase:
-#     def __init__(self, project_name: str):
-#         db_file = f"files/{project_name}_companies_database.db"
-#         # Получаем абсолютный путь к файлу базы данных относительно этого файла
-#         base_dir = os.path.dirname(os.path.abspath(__file__))
-#         absolute_path = os.path.join(base_dir, db_file)
-#
-#         self.connection = sqlite3.connect(absolute_path)
-#         self.cursor = self.connection.cursor()
-#
-#     def create_table(self, company_name: str):
-#         with self.connection:
-#             self.cursor.execute(f'CREATE TABLE IF NOT EXISTS {company_name} ('
-#                                 '"id" INTEGER PRIMARY KEY,')
+
+class AllChatsDatabase:
+    def __init__(self):
+        db_file = "files/chats/all_chats_database.db"
+
+        # Определение абсолютного пути к файлу базы данных
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        absolute_path = os.path.join(base_dir, db_file)
+
+        # Создание всех директорий в пути, если они не существуют
+        os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+
+        # Подключение к базе данных
+        self.connection = sqlite3.connect(absolute_path)
+        self.cursor = self.connection.cursor()
+
+    def create_table(self):
+        with self.connection:
+            return self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_chats" ('
+                                       '"id" INTEGER PRIMARY KEY,'
+                                       '"chat_id" INTEGER,'
+                                       '"chat_type" TEXT)')
+
+    def add_chat(self, chat_id: int, chat_type: str):
+        with self.connection:
+            return self.cursor.execute('INSERT INTO "all_chats" ("chat_id", "chat_type") '
+                                       'VALUES (?, ?)', (chat_id, chat_type))
+
+    def check_chat_existing(self, chat_id: int):
+        with self.connection:
+            return self.cursor.execute('SELECT 1 FROM "all_chats" WHERE "chat_id" = ?',
+                                       (chat_id,)).fetchone()[0]
+
+
+class ChatDatabase:
+    def __init__(self, chat_type: str, chat_id: int):
+        db_file = f"files/chats/{chat_type}/{chat_id}.db"
+
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        absolute_path = os.path.join(base_dir, db_file)
+
+        # Создание всех директорий в пути, если они не существуют
+        os.makedirs(os.path.dirname(absolute_path), exist_ok=True)
+
+        self.connection = sqlite3.connect(absolute_path)
+        self.cursor = self.connection.cursor()
+
+    def create_tables(self):
+        with self.connection:
+            self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_posts" ('
+                                '"id" INTEGER PRIMARY KEY,'
+                                '"text" TEXT,'
+                                '"photo" TEXT,'
+                                '"video" TEXT,'
+                                '"audio" TEXT,'
+                                '"document" TEXT,'
+                                '"video_note" TEXT,'
+                                '"voice_message" TEXT,'
+                                '"sticker" TEXT,'
+                                '"location" TEXT,'
+                                '"contact" TEXT,'
+                                '"poll" TEXT,'
+                                '"animation" TEXT,'
+                                '"markup" TEXT,'
+                                '"entities" TEXT,'
+                                '"post_type" TEXT,'
+                                '"post_media_group_id" INTEGER,'
+                                '"post_message_id" INTEGER)')  # message_id в канале-источнике
+
+            self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_comments" ('
+                                '"id" INTEGER PRIMARY KEY,'
+                                '"text" TEXT,'
+                                '"username" TEXT,'
+                                '"comment_message_id" INTEGER)')
+            return
+
+    def add_post(self, post_data: list):
+        with self.connection:
+            return self.cursor.execute('INSERT INTO "all_posts" ("text", "photo", "video", '
+                                       '"audio", "document", "video_note", "voice_message", '
+                                       '"sticker", "location", "contact", '
+                                       '"poll", "animation", "markup", "entities", '
+                                       '"post_type", "post_media_group_id", "post_message_id") '
+                                       'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                                       post_data)
+
+    def add_comment(self, comment_data: list):
+        with self.connection:
+            return self.cursor.execute('INSERT INTO "all_comments" ("text", "username", "comment_message_id") '
+                                       'VALUES (?, ?, ?)', comment_data)
+
+    def get_all_posts(self):
+        with self.connection:
+            return self.cursor.execute('SELECT * FROM "all_posts"').fetchall()
+
+    def get_all_comments(self):
+        with self.connection:
+            return self.cursor.execute('SELECT * FROM "all_comments"').fetchall()
 
