@@ -274,11 +274,9 @@ class ProjectsDatabase:
 
     def get_company_attribute(self, attribute: str, company_name: str):
         with self.connection:
-            result = self.cursor.execute(f'SELECT "{attribute}" FROM "companies" '
+            return self.cursor.execute(f'SELECT "{attribute}" FROM "companies" '
                                        f'WHERE "company_name" = ?',
-                                       (company_name,)).fetchone()
-            logger.warning(result)
-            return result[0]
+                                       (company_name,)).fetchone()[0]
 
     def get_all_company_attributes(self, company_name: str):
         with self.connection:

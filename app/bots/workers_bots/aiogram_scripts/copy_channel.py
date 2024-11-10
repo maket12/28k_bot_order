@@ -23,21 +23,22 @@ def get_bot(token: str):
         return False
 
 
-async def main(token: str | None):
+async def main(token: str | None, company_name: str | None):
     try:
         logger.debug("Начинаем копирование")
         if not token:
             logger.critical("Токен бота не был передан!")
+            return
+        if not company_name:
+            logger.critical("Имя компании не было передано!")
             return
 
         bot = get_bot(token=token)
         if not bot:
             return
 
-        username = accounts_db.get_username_by_token(bot_token=token)
-
         source_chat_id, source_chat_type, recipient_chat_id, recipient_chat_type = projects_db.get_chat_ids_by_company(
-            receiver_username=username)
+            company_name=company_name)
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=source_chat_id)
 
@@ -83,16 +84,17 @@ async def main(token: str | None):
                 elif post[14] == "sticker":
                     await bot.send_sticker(sticker=post[7], chat_id=recipient_chat_id)
                 elif post[14] == "location":
-                    pass
+                    continue
                     # await bot.send_location(latitude=, lon)
                 elif post[14] == "contact":
-                    pass
+                    continue
                     # await bot.send_contact(phone_number=, first_name=)
                 else:
-                    pass
+                    continue
                     # await bot.send_poll()
 
             last_media_group_id = post[15]
+            await asyncio.sleep(5)
         logger.debug("Закончили копировать.")
 
     except Exception as e:
@@ -101,13 +103,15 @@ async def main(token: str | None):
 
 if __name__ == "__main__":
     # Получаем аргументы из sys.argv
-    bot_token = None
+    bot_token = company_nm = None
 
     # Проходим по аргументам вручную
     args = sys.argv[1:]  # Пропускаем первый элемент, так как это имя скрипта
     for i in range(len(args)):
         if args[i] == "--bot_token" and i + 1 < len(args):
             bot_token = args[i + 1]
+        elif args[i] == "--company_name" and i + 1 < len(args):
+            company_nm = args[i + 1]
 
     # Передаем аргументы в основную функцию
-    asyncio.run(main(token=bot_token))
+    asyncio.run(main(token=bot_token, company_name=company_nm))
