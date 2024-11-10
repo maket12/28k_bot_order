@@ -24,7 +24,7 @@ def get_client(session_path: str):
 
 
 async def main(session_path: str | None, company_name: str | None):
-    try:
+    # try:
         if not session_path:
             logger.critical("Путь к сессии не был передан!")
             return
@@ -134,8 +134,8 @@ async def main(session_path: str | None, company_name: str | None):
         subprocess_station.set_input_data(data=sender_token)
         subprocess_station.set_company_name(company=company_name)
         subprocess_station.run_script(script_name="copy_channel.py")
-    except Exception as e:
-        logger.error("Возникла ошибка в channel_posts_collecting: %s", e)
+    # except Exception as e:
+    #     logger.error("Возникла ошибка в channel_posts_collecting: %s", e)
 
 
 if __name__ == "__main__":
