@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 from aiogram import Bot
+from aiogram.types import InputFile
 from aiogram.utils.media_group import MediaGroupBuilder
 from app.services.database.database_code import ProjectsDatabase, AccountsDatabase, ChatDatabase
 from app.services.database.database_code import AllChatsDatabase
@@ -80,38 +81,38 @@ async def main(token: str | None, company_name: str | None):
                     if not media_group.caption:
                         media_group.caption = post[1]
                 if post[15] == "photo":
-                    media_group.add_photo(media=get_full_media_path(post[2]))
+                    media_group.add_photo(media=InputFile(get_full_media_path(post[2])))
                 elif post[15] == "video":
-                    media_group.add_video(media=get_full_media_path(post[3]))
+                    media_group.add_video(media=InputFile(get_full_media_path(post[3])))
                 elif post[15] == "audio":
-                    media_group.add_audio(media=get_full_media_path(post[4]))
+                    media_group.add_audio(media=InputFile(get_full_media_path(post[4])))
                 elif post[15] == "document":
-                    media_group.add_document(media=get_full_media_path(post[5]))
+                    media_group.add_document(media=InputFile(get_full_media_path(post[5])))
             else:
                 if post[15] == "text":
                     await bot.send_message(text=post[1], chat_id=recipient_chat_id)
                 elif post[15] == "photo":
-                    await bot.send_photo(photo=get_full_media_path(post[2]),
+                    await bot.send_photo(photo=InputFile(get_full_media_path(post[2])),
                                          chat_id=recipient_chat_id)
                 elif post[15] == "video":
-                    await bot.send_video(video=get_full_media_path(post[3]),
+                    await bot.send_video(video=InputFile(get_full_media_path(post[3])),
                                          chat_id=recipient_chat_id)
                 elif post[15] == "audio":
-                    await bot.send_audio(audio=get_full_media_path(post[4]),
+                    await bot.send_audio(audio=InputFile(get_full_media_path(post[4])),
                                          chat_id=recipient_chat_id)
                 elif post[15] == "document":
                     path = get_full_media_path(post[5])
                     if path:
-                        await bot.send_document(document=path,
+                        await bot.send_document(document=InputFile(path),
                                                 chat_id=recipient_chat_id)
                 elif post[15] == "video_note":
-                    await bot.send_video_note(video_note=get_full_media_path(post[6]),
+                    await bot.send_video_note(video_note=InputFile(get_full_media_path(post[6])),
                                               chat_id=recipient_chat_id)
                 elif post[15] == "voice":
-                    await bot.send_voice(voice=get_full_media_path(post[7]),
+                    await bot.send_voice(voice=InputFile(get_full_media_path(post[7])),
                                          chat_id=recipient_chat_id)
                 elif post[15] == "sticker":
-                    await bot.send_sticker(sticker=get_full_media_path(post[8]),
+                    await bot.send_sticker(sticker=InputFile(get_full_media_path(post[8])),
                                            chat_id=recipient_chat_id)
                 elif post[15] == "location":
                     continue
