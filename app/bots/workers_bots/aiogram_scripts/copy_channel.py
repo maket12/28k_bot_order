@@ -1,6 +1,7 @@
 import asyncio
 import sys
-from aiogram import Bot, Dispatcher
+import os
+from aiogram import Bot
 from aiogram.utils.media_group import MediaGroupBuilder
 from app.services.database.database_code import ProjectsDatabase, AccountsDatabase, ChatDatabase
 from app.services.database.database_code import AllChatsDatabase
@@ -21,6 +22,23 @@ def get_bot(token: str):
     except Exception as e:
         logger.error("Возникла ошибка при инициализации клиента: %s", e)
         return False
+
+
+def get_full_media_path(file_id: str):
+    try:
+        curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        target_dir = os.path.join(curr_dir, f"media")
+
+        # Ищем файл, начинающийся с file_id
+        file_path = None
+        for file_name in os.listdir(target_dir):
+            # Проверяем, начинается ли имя файла с file_id
+            if file_name.startswith(file_id):
+                file_path = os.path.join(target_dir, file_name)
+                break  # Останавливаемся при нахождении первого совпадения
+        return file_path
+    except Exception as e:
+        logger.error("Возникла ошибка в get_full_media_path: %s", e)
 
 
 async def main(token: str | None, company_name: str | None):
@@ -59,30 +77,37 @@ async def main(token: str | None, company_name: str | None):
                     if not media_group.caption:
                         media_group.caption = post[0]
                 if post[15] == "photo":
-                    media_group.add_photo(media=post[1])
+                    media_group.add_photo(media=get_full_media_path(file_id=post[1]))
                 elif post[15] == "video":
-                    media_group.add_video(media=post[2])
+                    media_group.add_video(media=get_full_media_path(post[2]))
                 elif post[15] == "audio":
-                    media_group.add_audio(media=post[3])
+                    media_group.add_audio(media=get_full_media_path(post[3]))
                 elif post[15] == "document":
-                    media_group.add_document(media=post[4])
+                    media_group.add_document(media=get_full_media_path(post[4]))
             else:
                 if post[15] == "text":
                     await bot.send_message(text=post[0], chat_id=recipient_chat_id)
                 elif post[15] == "photo":
-                    await bot.send_photo(photo=post[1], chat_id=recipient_chat_id)
+                    await bot.send_photo(photo=get_full_media_path(post[1]),
+                                         chat_id=recipient_chat_id)
                 elif post[15] == "video":
-                    await bot.send_video(video=post[2], chat_id=recipient_chat_id)
+                    await bot.send_video(video=get_full_media_path(post[2]),
+                                         chat_id=recipient_chat_id)
                 elif post[15] == "audio":
-                    await bot.send_audio(audio=post[3], chat_id=recipient_chat_id)
+                    await bot.send_audio(audio=get_full_media_path(post[3]),
+                                         chat_id=recipient_chat_id)
                 elif post[15] == "document":
-                    await bot.send_document(document=post[4], chat_id=recipient_chat_id)
+                    await bot.send_document(document=get_full_media_path(post[4]),
+                                            chat_id=recipient_chat_id)
                 elif post[15] == "video_note":
-                    await bot.send_video_note(video_note=post[5], chat_id=recipient_chat_id)
+                    await bot.send_video_note(video_note=get_full_media_path(post[5]),
+                                              chat_id=recipient_chat_id)
                 elif post[15] == "voice":
-                    await bot.send_voice(voice=post[6], chat_id=recipient_chat_id)
+                    await bot.send_voice(voice=get_full_media_path(post[6]),
+                                         chat_id=recipient_chat_id)
                 elif post[15] == "sticker":
-                    await bot.send_sticker(sticker=post[7], chat_id=recipient_chat_id)
+                    await bot.send_sticker(sticker=get_full_media_path(post[7]),
+                                           chat_id=recipient_chat_id)
                 elif post[15] == "location":
                     continue
                     # await bot.send_location(latitude=, lon)

@@ -25,10 +25,21 @@ def get_client(session_path: str):
         return False
 
 
-def get_download_path():
+def get_download_path(file_id: str, content_type: str, document_ending=None):
     try:
-        curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        path = os.path.join(curr_dir, f"media/")
+        if content_type == "photo":
+            ending = "png"
+        elif content_type == "video" or content_type == "video_note" or content_type == "animation":
+            ending = "mp4"
+        elif content_type == "document":
+            ending = document_ending
+        elif content_type == "audio" or content_type == "voice":
+            ending = "mp3"
+        else:
+            ending = "webp"
+
+        curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        path = os.path.join(curr_dir, f"media/{file_id}.{ending}")
         return path
     except Exception as e:
         logger.error("Возникла ошибка в download_file: %s", e)
@@ -43,113 +54,141 @@ async def main(session_path: str | None, company_name: str | None):
             logger.critical("Имя компании не было передано!")
             return
 
-        app = get_client(session_path=session_path)
-        if not app:
-            return
-
-        logger.debug("Начинаем сбор.")
-        logger.debug("session: %s", session_path)
-        await app.start()
-
-        logger.info(f"Company: {company_name}")
+        (source_chat_id, source_chat_type,
+         recipient_chat_id, recipient_chat_type) = projects_db.get_chat_ids_by_company(
+            company_name=company_name
+        )
 
         sender_username = projects_db.get_company_attribute(attribute="sender_account",
                                                             company_name=company_name)
         sender_token = accounts_db.get_attribute_by_username(attribute="bot_token",
                                                              username=sender_username)
 
-        logger.info(f"Username: {sender_username}")
+        chat_existing = all_chats_db.check_chat_existing(chat_id=source_chat_id)
 
-        (source_chat_id, source_chat_type,
-         recipient_chat_id, recipient_chat_type) = projects_db.get_chat_ids_by_company(
-            company_name=company_name
-        )
+        if not chat_existing:
+            app = get_client(session_path=session_path)
+            if not app:
+                return
 
-        async for chat in app.get_dialogs():
-            logger.info(f"Чат агента: {chat.chat.username}, {chat.chat.id}")
+            logger.debug("Начинаем сбор.")
+            await app.start()
 
-        await app.join_chat(chat_id=source_chat_id)
-        chat = await app.get_chat(chat_id=source_chat_id)
+            async for chat in app.get_dialogs():
+                logger.info(f"Чат агента: {chat.chat.username}, {chat.chat.id}")
 
-        logger.info(chat.type)
+            # await app.join_chat(chat_id=source_chat_id)
+            # chat = await app.get_chat(chat_id=source_chat_id)
 
-        chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
-        chat_db.create_tables()
+            chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
+            chat_db.create_tables()
 
-        post_data = [None, None, None, None, None, None, None, None, None, None,
-                     None, None, None, None, None, None, None]
-        messages_counter = 0
-        async for message in app.get_chat_history(chat_id=source_chat_id):
-            logger.info("Тут сбор...")
-            messages_counter += 1
-            if (messages_counter % 100) == 0:
-                await asyncio.sleep(8)
+            post_data = [None, None, None, None, None, None, None, None, None, None,
+                         None, None, None, None, None, None, None]
+            messages_counter = 0
+            async for message in app.get_chat_history(chat_id=source_chat_id):
+                logger.info("Тут сбор...")
+                messages_counter += 1
+                if (messages_counter % 100) == 0:
+                    await asyncio.sleep(8)
 
-            if message.text:
-                post_data[0] = message.text
-                post_data[14] = "text"
-            else:
-                if message.media:
-                    await app.download_media(message=message,
-                                             file_name=get_download_path())
-                if message.caption:
-                    post_data[0] = message.caption
-
-                if message.photo:
-                    post_data[1] = message.photo.file_id
-                    post_data[14] = "photo"
-                elif message.video:
-                    post_data[2] = message.video.file_id
-                    post_data[14] = "video"
-                elif message.audio:
-                    post_data[3] = message.audio.file_id
-                    post_data[14] = "audio"
-                elif message.document:
-                    post_data[4] = message.document.file_id
-                    post_data[14] = "document"
-                elif message.video_note:
-                    post_data[5] = message.video_note.file_id
-                    post_data[14] = "video_note"
-                elif message.voice:
-                    post_data[6] = message.voice.file_id
-                    post_data[14] = "voice"
-                elif message.sticker:
-                    post_data[7] = message.sticker.file_id
-                    post_data[14] = "sticker"
-                elif message.location:
-                    post_data[8] = f"latitude: {message.location.latitude}, longitude: {message.location.longitude}"
-                    post_data[14] = "location"
-                elif message.contact:
-                    post_data[9] = f"phone: {message.contact.phone_number}, first_name: {message.contact.first_name}"
-                    post_data[14] = "contact"
-                elif message.poll:
-                    post_data[10] = str(message.poll)
-                    post_data[14] = "poll"
-                elif message.animation:
-                    post_data[11] = message.animation.file_id
-                    post_data[14] = "animation"
+                if message.text:
+                    post_data[0] = message.text
+                    post_data[14] = "text"
                 else:
-                    logger.warning("Unknowing message object: %s", message.link)
-                    continue
-            if message.reply_markup:
-                if message.reply_markup.keyboard:
-                    post_data[12] = str(message.reply_markup.keyboard)
-                elif message.reply_markup.inline_keyboard:
-                    post_data[12] = str(message.reply_markup.inline_keyboard)
+                    if message.media:
+                        await app.download_media(message=message,
+                                                 file_name=get_download_path())
+                    if message.caption:
+                        post_data[0] = message.caption
 
-            if message.entities:
-                post_data[13] = parse_entities(entities=message.entities)
+                    if message.photo:
+                        post_data[1] = message.photo.file_id
+                        post_data[14] = "photo"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.photo.file_id,
+                            content_type=post_data[14]
+                        ))
+                    elif message.video:
+                        post_data[2] = message.video.file_id
+                        post_data[14] = "video"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.video.file_id,
+                            content_type=post_data[14]
+                        ))
+                    elif message.audio:
+                        post_data[3] = message.audio.file_id
+                        post_data[14] = "audio"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.audio.file_id,
+                            content_type=post_data[14]
+                        ))
+                    elif message.document:
+                        post_data[4] = message.document.file_id
+                        post_data[14] = "document"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.document.file_id,
+                            content_type=post_data[14],
+                            document_ending=message.document.mime_type
+                        ))
+                    elif message.video_note:
+                        post_data[5] = message.video_note.file_id
+                        post_data[14] = "video_note"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.video_note.file_id,
+                            content_type=post_data[14]
+                        ))
+                    elif message.voice:
+                        post_data[6] = message.voice.file_id
+                        post_data[14] = "voice"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.voice.file_id,
+                            content_type=post_data[14]
+                        ))
+                    elif message.sticker:
+                        post_data[7] = message.sticker.file_id
+                        post_data[14] = "sticker"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.sticker.file_id,
+                            content_type=post_data[14]
+                        ))
+                    elif message.location:
+                        post_data[8] = f"latitude: {message.location.latitude}, longitude: {message.location.longitude}"
+                        post_data[14] = "location"
+                    elif message.contact:
+                        post_data[9] = f"phone: {message.contact.phone_number}, first_name: {message.contact.first_name}"
+                        post_data[14] = "contact"
+                    elif message.poll:
+                        post_data[10] = str(message.poll)
+                        post_data[14] = "poll"
+                    elif message.animation:
+                        post_data[11] = message.animation.file_id
+                        post_data[14] = "animation"
+                        await message.download(file_name=get_download_path(
+                            file_id=message.animation.file_id,
+                            content_type=post_data[14]
+                        ))
+                    else:
+                        logger.warning("Unknowing message object: %s", message.link)
+                        continue
+                if message.reply_markup:
+                    if message.reply_markup.keyboard:
+                        post_data[12] = str(message.reply_markup.keyboard)
+                    elif message.reply_markup.inline_keyboard:
+                        post_data[12] = str(message.reply_markup.inline_keyboard)
 
-            post_data[15] = message.media_group_id
-            post_data[16] = message.id
-            # message.
+                if message.entities:
+                    post_data[13] = parse_entities(entities=message.entities)
 
-            chat_db.add_post(post_data=post_data)
+                post_data[15] = message.media_group_id
+                post_data[16] = message.id
 
-        all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
+                chat_db.add_post(post_data=post_data)
 
-        logger.debug("Закончили сбор")
-        await app.stop()
+            all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
+
+            logger.debug("Закончили сбор")
+            await app.stop()
 
         subprocess_station.set_script_path(script_type="aiogram", script_name="copy_channel.py")
         subprocess_station.set_input_data(data=sender_token)
