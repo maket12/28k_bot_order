@@ -338,8 +338,11 @@ class AllChatsDatabase:
 
     def check_chat_existing(self, chat_id: int):
         with self.connection:
-            return self.cursor.execute('SELECT 1 FROM "all_chats" WHERE "chat_id" = ?',
-                                       (chat_id,)).fetchone()[0]
+            result = self.cursor.execute('SELECT 1 FROM "all_chats" WHERE "chat_id" = ?',
+                                       (chat_id,)).fetchone()
+            if not result:
+                result = result[0]
+            return result
 
 
 class ChatDatabase:
