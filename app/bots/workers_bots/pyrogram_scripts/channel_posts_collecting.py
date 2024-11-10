@@ -60,6 +60,7 @@ async def main(session_path: str | None, company_name: str | None):
         logger.info(chat.type)
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
+        chat_db.create_tables()
 
         post_data = [None, None, None, None, None, None, None, None, None, None,
                      None, None, None, None, None, None, None]
@@ -129,6 +130,7 @@ async def main(session_path: str | None, company_name: str | None):
             chat_db.add_post(post_data=post_data)
 
         all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
+        all_chats_db.create_table()
 
         logger.debug("Закончили сбор")
         await app.stop()
