@@ -92,6 +92,8 @@ async def main(session_path: str | None, company_name: str | None):
                 if (messages_counter % 100) == 0:
                     await asyncio.sleep(8)
 
+                if message.id >= 99: continue  # DELETE IT AFTER TESTS
+
                 if message.text:
                     post_data[0] = message.text
                     post_data[14] = "text"
@@ -169,10 +171,10 @@ async def main(session_path: str | None, company_name: str | None):
                         logger.warning("Unknowing message object: %s", message.link)
                         continue
                 if message.reply_markup:
-                    if message.reply_markup.keyboard:
-                        post_data[12] = str(message.reply_markup.keyboard)
-                    elif message.reply_markup.inline_keyboard:
+                    if message.reply_markup.inline_keyboard:
                         post_data[12] = str(message.reply_markup.inline_keyboard)
+                    # elif message.reply_markup.inline_keyboard:
+                    #     post_data[12] = str(message.reply_markup.inline_keyboard)
 
                 if message.entities:
                     post_data[13] = parse_entities(entities=message.entities)
