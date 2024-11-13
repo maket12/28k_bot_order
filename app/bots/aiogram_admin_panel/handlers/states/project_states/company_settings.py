@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import build_companies_markup, \
     create_company_settings_markup, create_back_to_settings_markup, create_edit_company_markup, \
-    create_collect_comments_markup
+    create_collect_data_markup
 from app.bots.aiogram_admin_panel.state.state_init import EditCompanyAttributes
 from app.bots.aiogram_admin_panel.utils.create_message_text.create_company_info import create_text
 from app.services.database.database_code import ProjectsDatabase
@@ -177,13 +177,15 @@ async def edit_collecting_period_callback(message: types.CallbackQuery, state: F
     try:
         state_data = await state.get_data()
         company_name = state_data["company_name"]
+        data_to_collect = state_data["data_to_collect"]
 
         company_attributes = projects_db.get_all_company_attributes(company_name=company_name)
         await bot.edit_message_text(text=create_text(company_attributes=company_attributes),
                                     chat_id=message.from_user.id,
                                     message_id=message.message.message_id,
-                                    reply_markup=create_collect_comments_markup(
+                                    reply_markup=create_collect_data_markup(
                                         company_name=company_name,
+                                        data_to_collect=data_to_collect,
                                         comments_acc_existing=bool(company_attributes[13])),
                                     parse_mode="html",
                                     disable_web_page_preview=True)
@@ -197,7 +199,7 @@ async def edit_collecting_period_callback(message: types.CallbackQuery, state: F
 async def edit_collecting_period_message(message: types.Message, state: FSMContext, bot: Bot):
     try:
         # Проверка на корректность формата (примерная)
-        if not (message.text[0].isdigit() and message.text.count('.') == 4 and ':' in message.text):
+        if not (message.text[0].isdigit() and message.text.count('.') == 4 and '-' in message.text):
             await bot.send_message(text="Отправьте период в корректном формате!\n"
                                         "<b>день.месяц.год - день.месяц.год</b>",
                                    chat_id=message.chat.id,
@@ -206,10 +208,11 @@ async def edit_collecting_period_message(message: types.Message, state: FSMConte
 
         state_data = await state.get_data()
         company_name = state_data["company_name"]
+        data_to_collect = state_data["data_to_collect"]
 
         projects_db.change_company_attribute(company_name=company_name,
-                                             attribute_name="comments_format",
-                                             value=message.text)
+                                             attribute_name=data_to_collect,
+                                             value=message.text.replace(' ', ''))
 
         msg = await bot.send_message(text="Настройки успешно изменены!",
                                      chat_id=message.chat.id)
@@ -236,13 +239,15 @@ async def edit_collecting_links_callback(message: types.CallbackQuery, state: FS
     try:
         state_data = await state.get_data()
         company_name = state_data["company_name"]
+        data_to_collect = state_data["data_to_collect"]
 
         company_attributes = projects_db.get_all_company_attributes(company_name=company_name)
         await bot.edit_message_text(text=create_text(company_attributes=company_attributes),
                                     chat_id=message.from_user.id,
                                     message_id=message.message.message_id,
-                                    reply_markup=create_collect_comments_markup(
+                                    reply_markup=create_collect_data_markup(
                                         company_name=company_name,
+                                        data_to_collect=data_to_collect,
                                         comments_acc_existing=bool(company_attributes[13])),
                                     parse_mode="html",
                                     disable_web_page_preview=True)
@@ -265,9 +270,10 @@ async def edit_collecting_links_message(message: types.Message, state: FSMContex
 
         state_data = await state.get_data()
         company_name = state_data["company_name"]
+        data_to_collect = state_data["data_to_collect"]
 
         projects_db.change_company_attribute(company_name=company_name,
-                                             attribute_name="comments_format",
+                                             attribute_name=data_to_collect,
                                              value=message.text.replace(' ', '').replace('|', ' '))
 
         msg = await bot.send_message(text="Настройки успешно изменены!",

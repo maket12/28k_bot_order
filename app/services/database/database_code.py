@@ -129,8 +129,6 @@ class ProjectsDatabase:
             with open(absolute_path, 'w'):  # Создаём файл, если он не существует
                 pass
 
-        logger.warning(absolute_path)
-
         self.connection = sqlite3.connect(absolute_path)
         self.cursor = self.connection.cursor()
 
@@ -152,7 +150,7 @@ class ProjectsDatabase:
                                 '"source_chat_type" TEXT,'
                                 '"recipient_chat_id" TEXT,'  # == [CHAT_ID]
                                 '"recipient_chat_type" TEXT,'
-                                '"company_parsing" TEXT,'
+                                '"history" TEXT,'  # parsing way(period, all, link to post)
                                 '"company_events" TEXT DEFAULT "",'  # chat_events (edit, pin, delete)
                                 '"person_link_enable" INTEGER,'
                                 '"comments_account" INTEGER,'  # == CHAT_ID
@@ -340,9 +338,9 @@ class AllChatsDatabase:
         with self.connection:
             result = self.cursor.execute('SELECT 1 FROM "all_chats" WHERE "chat_id" = ?',
                                        (chat_id,)).fetchone()
-            if result:
-                result = result[0]
-            return result
+            if not result:
+                return
+            return result[0]
 
 
 class ChatDatabase:

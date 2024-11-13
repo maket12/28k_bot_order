@@ -4,6 +4,8 @@ import os
 from aiogram import Bot
 from aiogram.types import FSInputFile
 from aiogram.utils.media_group import MediaGroupBuilder
+from app.bots.workers_bots.pyrogram_scripts.utils.parsing_posts_utils.entities_including import with_entities_including
+from app.bots.workers_bots.pyrogram_scripts.utils.parsing_posts_utils.markup_including import re_parse_markup
 from app.services.database.database_code import ProjectsDatabase, AccountsDatabase, ChatDatabase
 from app.services.database.database_code import AllChatsDatabase
 from app.services.subprocess_station.subprocess_init import SubprocessStation
@@ -79,55 +81,138 @@ async def main(token: str | None, company_name: str | None):
 
                 if post[1]:
                     if not media_group.caption:
-                        media_group.caption = post[1]
+                        media_group.caption = with_entities_including(post[1], entities=post[14])
+
                 if post[15] == "photo":
-                    media_group.add_photo(media=FSInputFile(get_full_media_path(post[2])))
+                    media_group.add_photo(media=FSInputFile(get_full_media_path(post[2])),
+                                          parse_mode="html")
                 elif post[15] == "video":
-                    media_group.add_video(media=FSInputFile(get_full_media_path(post[3])))
+                    media_group.add_video(media=FSInputFile(get_full_media_path(post[3])),
+                                          parse_mode="html")
                 elif post[15] == "audio":
-                    media_group.add_audio(media=FSInputFile(get_full_media_path(post[4])))
+                    media_group.add_audio(media=FSInputFile(get_full_media_path(post[4])),
+                                          parse_mode="html")
                 elif post[15] == "document":
-                    media_group.add_document(media=FSInputFile(get_full_media_path(post[5])))
+                    media_group.add_document(media=FSInputFile(get_full_media_path(post[5])),
+                                             parse_mode="html")
             else:
+                if post[13]:
+                    inline_keyboard = re_parse_markup(markup_string=post[13]).as_markup()
+                else:
+                    inline_keyboard = None
+
                 if post[15] == "text":
-                    await bot.send_message(text=post[1], chat_id=recipient_chat_id)
+                    await bot.send_message(text=with_entities_including(post[1], entities=post[14]),
+                                           chat_id=recipient_chat_id,
+                                           reply_markup=inline_keyboard,
+                                           parse_mode="html")
                 elif post[15] == "photo":
                     await bot.send_photo(photo=FSInputFile(get_full_media_path(post[2])),
-                                         caption=post[1],
-                                         chat_id=recipient_chat_id)
+                                         caption=with_entities_including(post[1], entities=post[14]),
+                                         chat_id=recipient_chat_id,
+                                         reply_markup=inline_keyboard,
+                                         parse_mode="html")
                 elif post[15] == "video":
                     await bot.send_video(video=FSInputFile(get_full_media_path(post[3])),
-                                         caption=post[1],
-                                         chat_id=recipient_chat_id)
+                                         caption=with_entities_including(post[1], entities=post[14]),
+                                         chat_id=recipient_chat_id,
+                                         reply_markup=inline_keyboard,
+                                         parse_mode="html")
                 elif post[15] == "audio":
                     await bot.send_audio(audio=FSInputFile(get_full_media_path(post[4])),
-                                         caption=post[1],
-                                         chat_id=recipient_chat_id)
+                                         caption=with_entities_including(post[1], entities=post[14]),
+                                         chat_id=recipient_chat_id,
+                                         reply_markup=inline_keyboard,
+                                         parse_mode="html")
                 elif post[15] == "document":
                     continue
                     # path = get_full_media_path(post[5])
                     # if path:
                     #     await bot.send_document(document=FSInputFile(path),
                     #                             caption=post[1],
-                    #                             chat_id=recipient_chat_id)
+                    #                             chat_id=recipient_chat_id,
+                    #                             reply_markup=inline_keyboard,
+                    #                             parse_mode="html")
                 elif post[15] == "video_note":
                     await bot.send_video_note(video_note=FSInputFile(get_full_media_path(post[6])),
-                                              chat_id=recipient_chat_id)
+                                              chat_id=recipient_chat_id,
+                                              reply_markup=inline_keyboard)
                 elif post[15] == "voice":
                     await bot.send_voice(voice=FSInputFile(get_full_media_path(post[7])),
-                                         chat_id=recipient_chat_id)
+                                         caption=with_entities_including(post[1], entities=post[14]),
+                                         chat_id=recipient_chat_id,
+                                         reply_markup=inline_keyboard,
+                                         parse_mode="html")
                 elif post[15] == "sticker":
                     await bot.send_sticker(sticker=FSInputFile(get_full_media_path(post[8])),
-                                           chat_id=recipient_chat_id)
+                                           chat_id=recipient_chat_id,
+                                           reply_markup=inline_keyboard)
                 elif post[15] == "location":
-                    continue
-                    # await bot.send_location(latitude=, lon)
+                    location_data = post[9].split(', ')
+                    latitude = location_data[0].split(': ')[1]
+                    longitude = location_data[1].split(': ')[1]
+                    await bot.send_location(latitude=latitude, longitude=longitude,
+                                            chat_id=recipient_chat_id,
+                                            reply_markup=inline_keyboard,)
                 elif post[15] == "contact":
-                    continue
-                    # await bot.send_contact(phone_number=, first_name=)
-                else:
-                    continue
-                    # await bot.send_poll()
+                    contact_data = post[10].split(', ')
+                    phone = contact_data[0].split(': ')[1]
+                    first_name = contact_data[1].split(': ')[1]
+                    await bot.send_contact(phone_number=phone, first_name=first_name,
+                                           chat_id=recipient_chat_id,
+                                           reply_markup=inline_keyboard,)
+                elif post[15] == "poll":
+                    poll_data = post[11].split(', ')
+                    question = poll_data[0].split(': ')[1]
+
+                    answers_string = poll_data[1].split(': ')[1]
+                    answers = answers_string[1:len(poll_data[1]) - 1].split(', ')
+
+                    anonymous = poll_data[2].split(': ')[1]
+                    if anonymous == "True":
+                        anonymous = True
+                    else:
+                        anonymous = False
+
+                    poll_type = poll_data[3].split(': ')[1]
+                    if poll_type == "None":
+                        poll_type = None
+
+                    multiply_answers = poll_data[4].split(': ')[1]
+                    if multiply_answers == "True":
+                        multiply_answers = True
+                    else:
+                        multiply_answers = False
+
+                    correct_option_id = poll_data[5].split(': ')[1]
+                    if correct_option_id == "None":
+                        correct_option_id = None
+                    else:
+                        correct_option_id = int(correct_option_id)
+
+                    explanation = poll_data[6].split(': ')[1]
+                    if explanation == "None":
+                        explanation = None
+
+                    open_period = poll_data[7].split(': ')[1]
+                    if open_period == "None":
+                        open_period = None
+                    else:
+                        open_period = int(open_period)
+
+                    await bot.send_poll(question=question, options=answers, is_anonymous=anonymous,
+                                        type=poll_type, allows_multiple_answers=multiply_answers,
+                                        correct_option_id=correct_option_id,
+                                        explanation=explanation,
+                                        open_period=open_period,
+                                        chat_id=recipient_chat_id,
+                                        reply_markup=inline_keyboard)
+                elif post[15] == "animation":
+                    await bot.send_animation(animation=FSInputFile(get_full_media_path(post[12])),
+                                             caption=with_entities_including(post[1], entities=post[14]),
+                                             chat_id=recipient_chat_id,
+                                             reply_markup=inline_keyboard,
+                                             parse_mode="html")
 
             last_media_group_id = post[16]
             await asyncio.sleep(5)

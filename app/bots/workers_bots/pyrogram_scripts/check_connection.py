@@ -1,3 +1,5 @@
+import os
+
 from pyrogram import Client, types
 from pyrogram.errors import SessionPasswordNeeded, BadRequest
 from app.services.logs.logging import logger
@@ -34,6 +36,14 @@ async def check_pyrogram_password(app: Client, password: str):
     try:
         await app.check_password(password=password)
         info = await app.get_me()
+
+        curr_dir = os.path.dirname(os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))))
+        os.path.join(
+            curr_dir,
+            "bots/workers_bots/pyrogram_scripts/sessions/", info.username
+        )
+
         return info.first_name, info.username
     except BadRequest:
         logger.error("Введён неверный пароль от аккаунта!")

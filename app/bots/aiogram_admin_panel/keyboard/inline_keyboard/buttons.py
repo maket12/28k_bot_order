@@ -353,7 +353,14 @@ def create_company_settings_markup(company_name: str, company_status: str):
 
 # Клавиатура редактирования компании
 
-def create_edit_company_markup(company_name: str):
+def create_edit_company_markup(company_name: str, parsing_regime: str):
+    if parsing_regime == "refresh":
+        button = InlineKeyboardButton(text="События на источнике",
+                                      callback_data=f"edit_source_events_{company_name}")
+    else:
+        button = InlineKeyboardButton(text="Сбор истории",
+                                      callback_data=f"edit_history_collecting_{company_name}")
+
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="Каналы назначения",
@@ -364,8 +371,7 @@ def create_edit_company_markup(company_name: str):
                                  callback_data=f"edit_comments_collecting_{company_name}")
         ],
         [
-            InlineKeyboardButton(text="События на источнике",
-                                 callback_data=f"edit_source_events_{company_name}")
+            button
         ],
         [
             InlineKeyboardButton(text="Назад",
@@ -403,25 +409,25 @@ def create_edit_dest_channels_markup(company_name: str, amount_of_channels: int)
     return markup.adjust(1).as_markup()
 
 
-# Клавиатура выбора способа сбора обсуждения
+# Клавиатура выбора способа сбора источника и обсуждения
 
-def create_collect_comments_markup(company_name: str, comments_acc_existing: bool):
+def create_collect_data_markup(company_name: str, data_to_collect: str, comments_acc_existing: bool):
     buttons = [
         [
             InlineKeyboardButton(text="За всё время",
-                                 callback_data=f"collecting_way_all_{company_name}")
+                                 callback_data=f"collecting_way_all_{data_to_collect}_{company_name}")
         ],
         [
             InlineKeyboardButton(text="По выбору периода",
-                                 callback_data=f"collecting_way_period_{company_name}")
+                                 callback_data=f"collecting_way_period_{data_to_collect}_{company_name}")
         ],
         [
             InlineKeyboardButton(text="По ссылкам",
-                                 callback_data=f"collecting_way_links_{company_name}")
+                                 callback_data=f"collecting_way_links_{data_to_collect}_{company_name}")
         ]
     ]
 
-    if not comments_acc_existing:
+    if not comments_acc_existing and data_to_collect == "comments":
         buttons.append(
             [
                 InlineKeyboardButton(text="Добавить секретаря",

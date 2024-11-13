@@ -1,7 +1,7 @@
 from app.services.logs.logging import logger
 
 
-def entities_including(text: str, entities: str):
+def with_entities_including(text: str, entities: str):
     try:
         entities_list = entities.split(';')
 

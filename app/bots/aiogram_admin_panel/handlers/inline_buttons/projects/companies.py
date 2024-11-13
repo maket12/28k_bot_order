@@ -5,7 +5,7 @@ from app.bots.aiogram_admin_panel.keyboard.reply_keyboard.buttons import skip_ac
     request_chat_markup, create_bots_markup
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_after_company_markup, \
     create_company_settings_markup, create_edit_dest_channels_markup, create_choose_events_markup, \
-    create_collect_comments_markup, create_back_to_settings_markup
+    create_collect_data_markup, create_back_to_settings_markup
 from app.bots.aiogram_admin_panel.keyboard.inline_keyboard.buttons import create_accepting_delete_markup, \
     create_edit_company_markup
 from app.bots.aiogram_admin_panel.state.state_init import GetCompanyAttributes, EditCompanyAttributes
@@ -88,9 +88,9 @@ async def launch_company(call: types.CallbackQuery, bot: Bot):
 
         subprocess_station.set_script_path(script_type="pyrogram",
                                            script_name="channel_posts_collecting.py")
-        # subprocess_station.set_input_data(data=f"{agent_account}.session")
-        subprocess_station.set_input_data(data=f"leech.session")
-        subprocess_station.set_company_name(company="Ещё один тест")
+        subprocess_station.set_input_data(data=f"{agent_account}.session")
+        # subprocess_station.set_input_data(data=f"leech.session")
+        subprocess_station.set_company_name(company=company_name)
         subprocess_station.run_script(script_name="channel_posts_collecting.py")
 
         await call.answer(text="Компания успешно запущена!",
@@ -145,10 +145,15 @@ async def rename_company(call: types.CallbackQuery, state: FSMContext, bot: Bot)
 async def edit_company(call: types.CallbackQuery, bot: Bot):
     try:
         company_name = ''.join(call.data.split('_')[2:])
+
+        parsing_regime = projects_db.get_company_attribute(attribute="parsing_regime",
+                                                           company_name=company_name)
+
         await bot.edit_message_reply_markup(chat_id=call.from_user.id,
                                             message_id=call.message.message_id,
                                             reply_markup=create_edit_company_markup(
-                                                company_name=company_name
+                                                company_name=company_name,
+                                                parsing_regime=parsing_regime
                                             ))
     except Exception as e:
         logger.error("Возникла ошибка в rename_company: %s", e)
@@ -219,6 +224,23 @@ async def del_recp_channel(call: types.CallbackQuery, state: FSMContext, bot: Bo
         logger.error("Возникла ошибка в del_recp_channel: %s", e)
 
 
+@router.callback_query(F.data.startswith("edit_history_collecting"))
+async def edit_history_collecting(call: types.CallbackQuery, bot: Bot):
+    try:
+        company_name = ''.join(call.data.split('_')[3:])
+
+        await bot.edit_message_reply_markup(chat_id=call.from_user.id,
+                                            message_id=call.message.message_id,
+                                            reply_markup=create_collect_data_markup(
+                                                company_name=company_name,
+                                                data_to_collect="history",
+                                                comments_acc_existing=True  # just skip it(wrong way, i know)
+                                            )
+                                            )
+    except Exception as e:
+        logger.error("Вознилка ошибка в edit_history_collecting: %s", e)
+
+
 @router.callback_query(F.data.startswith("edit_comments_collecting"))
 async def edit_comments_collecting(call: types.CallbackQuery, bot: Bot):
     try:
@@ -235,8 +257,9 @@ async def edit_comments_collecting(call: types.CallbackQuery, bot: Bot):
                                                              company_name=company_name)
         await bot.edit_message_reply_markup(chat_id=call.from_user.id,
                                             message_id=call.message.message_id,
-                                            reply_markup=create_collect_comments_markup(
+                                            reply_markup=create_collect_data_markup(
                                                 company_name=company_name,
+                                                data_to_collect="comments",
                                                 comments_acc_existing=bool(comments_account)
                                             )
                                             )
@@ -244,10 +267,36 @@ async def edit_comments_collecting(call: types.CallbackQuery, bot: Bot):
         logger.error("Возникла ошибка в edit_comments_collecting: %s", e)
 
 
-@router.callback_query(F.data.startswith("collecting_way_all"))
-async def collecting_way_all(call: types.CallbackQuery, bot: Bot):
+@router.callback_query(F.data.startswith("collecting_way_all_history"))
+async def collecting_way_all_comments(call: types.CallbackQuery, bot: Bot):
     try:
-        company_name = ''.join(call.data.split('_')[3:])
+        company_name = ''.join(call.data.split('_')[4:])
+
+        projects_db.change_company_attribute(company_name=company_name,
+                                             attribute_name="history",
+                                             value="all")
+        msg = await bot.edit_message_text(text="Настройки успешно изменены!",
+                                          chat_id=call.from_user.id,
+                                          message_id=call.message.message_id)
+
+        await asyncio.sleep(2)
+
+        company_attributes = projects_db.get_all_company_attributes(company_name=company_name)
+        await bot.edit_message_text(text=create_text(company_attributes=company_attributes),
+                                    chat_id=call.from_user.id,
+                                    message_id=msg.message_id,
+                                    reply_markup=create_edit_company_markup(company_name=company_name,
+                                                                            parsing_regime="grabbing"),
+                                    parse_mode="html",
+                                    disable_web_page_preview=True)
+    except Exception as e:
+        logger.error("Возникла ошибка в collecting_way_all: %s", e)
+
+
+@router.callback_query(F.data.startswith("collecting_way_all_comments"))
+async def collecting_way_all_comments(call: types.CallbackQuery, bot: Bot):
+    try:
+        company_name = ''.join(call.data.split('_')[4:])
 
         projects_db.change_company_attribute(company_name=company_name,
                                              attribute_name="comments_format",
@@ -262,7 +311,8 @@ async def collecting_way_all(call: types.CallbackQuery, bot: Bot):
         await bot.edit_message_text(text=create_text(company_attributes=company_attributes),
                                     chat_id=call.from_user.id,
                                     message_id=msg.message_id,
-                                    reply_markup=create_edit_company_markup(company_name=company_name),
+                                    reply_markup=create_edit_company_markup(company_name=company_name,
+                                                                            parsing_regime="grabbing"),
                                     parse_mode="html",
                                     disable_web_page_preview=True)
     except Exception as e:
@@ -272,9 +322,12 @@ async def collecting_way_all(call: types.CallbackQuery, bot: Bot):
 @router.callback_query(F.data.startswith("collecting_way_period"))
 async def collecting_way_period(call: types.CallbackQuery, state: FSMContext, bot: Bot):
     try:
-        company_name = ''.join(call.data.split('_')[3:])
+        call_data = call.data.split('_')
+        data_to_collect = call_data[3]
+        company_name = ''.join(call_data[4:])
 
-        await bot.edit_message_text(text=call.message.text + "\n-------------\n" +
+        await bot.edit_message_text(text=call.message.text +
+                                         "\n➖➖➖➖➖➖➖➖➖\n"
                                          "Отправьте период в формате <b>день.месяц.год - день.месяц.год</b>:",
                                     chat_id=call.from_user.id,
                                     message_id=call.message.message_id,
@@ -283,6 +336,7 @@ async def collecting_way_period(call: types.CallbackQuery, state: FSMContext, bo
 
         await state.set_state(EditCompanyAttributes.edit_collecting_period)
         await state.update_data(company_name=company_name)
+        await state.update_data(data_to_collect=data_to_collect)
     except Exception as e:
         logger.error("Возникла ошибка в collecting_way_period: %s", e)
 
@@ -290,7 +344,9 @@ async def collecting_way_period(call: types.CallbackQuery, state: FSMContext, bo
 @router.callback_query(F.data.startswith("collecting_way_links"))
 async def collecting_way_links(call: types.CallbackQuery, state: FSMContext, bot: Bot):
     try:
-        company_name = ''.join(call.data.split('_')[3:])
+        call_data = call.data.split('_')
+        data_to_collect = call_data[3]
+        company_name = ''.join(call_data[4:])
 
         await bot.edit_message_text(text=call.message.text + "\n➖➖➖➖➖➖➖➖➖\n"
                                                              "Отправьте ссылку(ссылки) на пост.\n"
@@ -302,6 +358,7 @@ async def collecting_way_links(call: types.CallbackQuery, state: FSMContext, bot
 
         await state.set_state(EditCompanyAttributes.edit_collecting_links)
         await state.update_data(company_name=company_name)
+        await state.update_data(data_to_collect=data_to_collect)
     except Exception as e:
         logger.error("Возникла ошибка в collecting_way_links: %s", e)
 
