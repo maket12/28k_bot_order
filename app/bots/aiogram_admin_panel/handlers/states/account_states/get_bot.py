@@ -266,6 +266,8 @@ async def get_api_hash_call(call: types.CallbackQuery, state: FSMContext, bot: B
 @router.message(GetBot.get_api_hash)
 async def get_api_hash(message: types.Message, state: FSMContext, bot: Bot):
     try:
+        await bot.delete_message(chat_id=message.chat.id,
+                                 message_id=message.message_id-1)
         state_data = await state.get_data()
         phone = state_data["phone_number"].replace(' ', '')
         api_id = state_data["api_id"]
@@ -286,8 +288,8 @@ async def get_api_hash(message: types.Message, state: FSMContext, bot: Bot):
             await state.set_state(GetBot.get_auth_code)
         else:
             await bot.send_message(text="Возникла ошибка при создании сессии!\n"
-                                              "Проверьте валидность введённых данных!",
-                                         chat_id=message.chat.id)
+                                        "Проверьте валидность введённых данных!",
+                                   chat_id=message.chat.id)
             await accounts_bots(call=message, bot=bot)
             await state.clear()
     except Exception as e:

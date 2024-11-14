@@ -66,35 +66,43 @@ async def main(token: str | None, company_name: str | None):
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=source_chat_id)
 
-        all_posts = chat_db.get_all_posts()
+        all_posts = chat_db.get_all_posts().reverse()
 
         media_group = MediaGroupBuilder()
 
-        last_media_group_id = 0
+        last_media_group_id = all_posts[0][16]
+        media_group_length = 0
 
         for post in all_posts:
             logger.info("Тут копируем...")
             if last_media_group_id:
                 if post[16] != last_media_group_id:
-                    await bot.send_media_group(media=media_group.build(), chat_id=recipient_chat_id)
+                    await bot.send_media_group(media=media_group.build(),
+                                               chat_id=recipient_chat_id)
                     media_group = MediaGroupBuilder()
+                    media_group_length = 0
 
                 if post[1]:
                     if not media_group.caption:
-                        media_group.caption = with_entities_including(post[1], entities=post[14])
+                        media_group.caption = with_entities_including(post[1],
+                                                                      entities=post[14])
 
                 if post[15] == "photo":
                     media_group.add_photo(media=FSInputFile(get_full_media_path(post[2])),
                                           parse_mode="html")
+                    media_group_length += 1
                 elif post[15] == "video":
                     media_group.add_video(media=FSInputFile(get_full_media_path(post[3])),
                                           parse_mode="html")
+                    media_group_length += 1
                 elif post[15] == "audio":
                     media_group.add_audio(media=FSInputFile(get_full_media_path(post[4])),
                                           parse_mode="html")
+                    media_group_length += 1
                 elif post[15] == "document":
                     media_group.add_document(media=FSInputFile(get_full_media_path(post[5])),
                                              parse_mode="html")
+                    media_group_length += 1
             else:
                 if post[13]:
                     inline_keyboard = re_parse_markup(markup_string=post[13]).as_markup()
@@ -216,6 +224,10 @@ async def main(token: str | None, company_name: str | None):
 
             last_media_group_id = post[16]
             await asyncio.sleep(5)
+        if media_group_length:
+            await bot.send_media_group(media=media_group.build(),
+                                       chat_id=recipient_chat_id)
+
         logger.debug("Закончили копировать!")
 
     except Exception as e:

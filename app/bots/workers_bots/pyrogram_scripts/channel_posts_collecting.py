@@ -208,11 +208,13 @@ async def parsing_process_all(session_path: str, source_chat_id: str, source_cha
         async for message in app.get_chat_history(chat_id=source_chat_id):
             messages_counter += 1
             if (messages_counter % 100) == 0:
-                await asyncio.sleep(8)
+                await asyncio.sleep(20)
 
             post_data = await collect_post(message=message)
 
             chat_db.add_post(post_data=post_data)
+
+            await asyncio.sleep(5)
 
         all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
 
