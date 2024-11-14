@@ -273,3 +273,4 @@ if __name__ == "__main__":
 
     # Передаем аргументы в основную функцию
     asyncio.run(main(session_path=ses_path, company_name=company_nm))
+
