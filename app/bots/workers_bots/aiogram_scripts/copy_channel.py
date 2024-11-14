@@ -240,7 +240,6 @@ async def main(token: str | None, company_name: str | None):
             await bot.send_media_group(media=media_group.build(),
                                        chat_id=recipient_chat_id)
 
-        await bot.stop()
         logger.debug("Закончили копировать!")
 
     except Exception as e:
