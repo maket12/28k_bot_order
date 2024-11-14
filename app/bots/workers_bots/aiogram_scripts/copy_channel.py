@@ -77,9 +77,12 @@ async def main(token: str | None, company_name: str | None):
                 last_media_group_id = all_posts[ind][16]
                 break
 
+        last_media_group_id = 0
         media_group_length = 0
 
         for post in reversed(all_posts):
+            if last_media_group_id == 0:
+                last_media_group_id = post[16]
             logger.info("Тут копируем...")
             if last_media_group_id:
                 if post[16] != last_media_group_id:
@@ -116,7 +119,8 @@ async def main(token: str | None, company_name: str | None):
                     inline_keyboard = None
 
                 if post[15] == "text":
-                    await bot.send_message(text=with_entities_including(post[1], entities=post[14]),
+                    await bot.send_message(text=with_entities_including(post[1],
+                                                                        entities=post[14]),
                                            chat_id=recipient_chat_id,
                                            reply_markup=inline_keyboard,
                                            parse_mode="html")
@@ -234,6 +238,7 @@ async def main(token: str | None, company_name: str | None):
             await bot.send_media_group(media=media_group.build(),
                                        chat_id=recipient_chat_id)
 
+        await bot.stop()
         logger.debug("Закончили копировать!")
 
     except Exception as e:
