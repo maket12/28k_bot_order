@@ -71,7 +71,7 @@ async def main(token: str | None, company_name: str | None):
         media_group = MediaGroupBuilder()
 
         last_media_group_id = None
-        for ind in range(len(all_posts)):
+        for ind in range(len(all_posts), 0):
             if all_posts[ind]:
                 # Определяем media_group_id самого первого непустого поста
                 last_media_group_id = all_posts[ind][16]
@@ -79,7 +79,7 @@ async def main(token: str | None, company_name: str | None):
 
         media_group_length = 0
 
-        for post in all_posts:
+        for post in reversed(all_posts):
             logger.info("Тут копируем...")
             if last_media_group_id:
                 if post[16] != last_media_group_id:
