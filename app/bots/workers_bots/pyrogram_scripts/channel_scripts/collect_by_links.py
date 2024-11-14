@@ -44,7 +44,7 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
             link_data = link.split('/')[-1]
             msg_id = ""
             string_pointer = 0
-            while link_data[string_pointer].isdigit():
+            while string_pointer < len(link_data) and link_data[string_pointer].isdigit():
                 msg_id += link_data[string_pointer]
                 string_pointer += 1
 
