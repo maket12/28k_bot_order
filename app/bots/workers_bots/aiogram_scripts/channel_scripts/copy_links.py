@@ -79,6 +79,7 @@ async def main(token: str | None, company_name: str | None, messages_ids: list |
         logger.debug("Начинаем копирование")
 
         for post in reversed(all_posts):
+            logger.warning(f"Current last: {last_media_group_id}, current: {post[17]}")
             if last_media_group_id == 0:
                 last_media_group_id = post[17]
 
