@@ -80,6 +80,21 @@ async def settings_company(call: types.CallbackQuery, bot: Bot):
 async def launch_company(call: types.CallbackQuery, bot: Bot):
     try:
         company_name = ''.join(call.data.split('_')[2:])
+
+        collecting_way = projects_db.get_company_attribute(attribute="history",
+                                                           company_name=company_name)
+        if not collecting_way:
+            await call.answer(text="Выберите режим парсинга!",
+                              show_alert=True)
+            return
+
+        if collecting_way == "all":
+            script_name = "collect_all.py"
+        elif collecting_way.startswith("https"):
+            script_name = "collect_by_links.py"
+        else:
+            script_name = "collect_for_period.py"
+
         projects_db.set_company_status(company_name=company_name,
                                        status="active")
 
@@ -87,9 +102,8 @@ async def launch_company(call: types.CallbackQuery, bot: Bot):
                                                           company_name=company_name)
 
         subprocess_station.set_script_path(script_type="pyrogram",
-                                           script_name="channel_posts_collecting.py")
+                                           script_name=f"channel_scripts/{script_name}")
         subprocess_station.set_input_data(data=f"{agent_account}.session")
-        # subprocess_station.set_input_data(data=f"leech.session")
         subprocess_station.set_company_name(company=company_name)
         subprocess_station.run_script(script_name="channel_posts_collecting.py")
 

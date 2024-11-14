@@ -49,7 +49,7 @@ def get_full_media_path(file_id: str):
         logger.error("Возникла ошибка в get_full_media_path: %s", e)
 
 
-async def main(token: str | None, company_name: str | None):
+async def main(token: str | None, company_name: str | None, messages_ids: list | None):
     try:
         logger.info(f"Компания {company_name} запущена.")
 
@@ -58,6 +58,9 @@ async def main(token: str | None, company_name: str | None):
             return
         if not company_name:
             logger.critical("Имя компании не было передано!")
+            return
+        if not messages_ids:
+            logger.critical("IDS сообщений не были переданы!")
             return
 
         bot = get_bot(token=token)
@@ -69,7 +72,7 @@ async def main(token: str | None, company_name: str | None):
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=source_chat_id)
 
-        all_posts = chat_db.get_all_posts()
+        all_posts = chat_db.get_posts_by_ids(messages_ids=messages_ids)
 
         media_group = MediaGroupBuilder()
 
@@ -244,7 +247,7 @@ async def main(token: str | None, company_name: str | None):
 
 if __name__ == "__main__":
     # Получаем аргументы из sys.argv
-    bot_token = company_nm = None
+    bot_token = company_nm = msg_ids = None
 
     # Проходим по аргументам вручную
     args = sys.argv[1:]  # Пропускаем первый элемент, так как это имя скрипта
@@ -253,6 +256,8 @@ if __name__ == "__main__":
             bot_token = args[i + 1]
         elif args[i] == "--company_name" and i + 1 < len(args):
             company_nm = args[i + 1]
+        elif args[i] == "--additional_data" and i + 1 < len(args):
+            msg_ids = args[i + 1].split(',')
 
     # Передаем аргументы в основную функцию
-    asyncio.run(main(token=bot_token, company_name=company_nm))
+    asyncio.run(main(token=bot_token, company_name=company_nm, messages_ids=msg_ids))

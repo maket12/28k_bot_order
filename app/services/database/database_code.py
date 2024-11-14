@@ -404,6 +404,16 @@ class ChatDatabase:
         with self.connection:
             return self.cursor.execute('SELECT * FROM "all_posts"').fetchall()
 
+    def get_posts_by_ids(self, messages_ids: list):
+        with self.connection:
+            result = []
+            for msg_id in messages_ids:
+                post_data = self.cursor.execute('SELECT * FROM "all_posts" WHERE "post_message_id" = ?',
+                                                (int(msg_id),)).fetchone()
+                if post_data:
+                    result.append(post_data)
+            return result
+
     def get_all_comments(self):
         with self.connection:
             return self.cursor.execute('SELECT * FROM "all_comments"').fetchall()

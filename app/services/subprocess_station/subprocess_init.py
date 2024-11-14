@@ -1,5 +1,6 @@
 import subprocess
 import os
+from datetime import datetime
 from app.services.logs.logging import logger
 
 
@@ -9,6 +10,7 @@ class SubprocessStation:
         self.script_path = None
         self.input_data = None
         self.company_name = None
+        self.additional_data = None
         self.venv_python = os.path.join(venv_path, "bin", "python")
         self.processes = {}  # Словарь для хранения запущенных процессов с их PID
 
@@ -36,6 +38,9 @@ class SubprocessStation:
     def set_company_name(self, company: str):
         self.company_name = company
 
+    def set_additional_data(self, data: str):
+        self.additional_data = data
+
     def run_script(self, script_name: str):
         try:
             if not self.script_path:
@@ -47,10 +52,14 @@ class SubprocessStation:
                 return
 
             root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
             logs_dir = os.path.join(root_dir, "app/services/logs/files")
             os.makedirs(logs_dir, exist_ok=True)
+
+            now = datetime.now()
+
             path_to_logs_file = os.path.join(
-                logs_dir, f"{script_name.split('.')[0]}.log"
+                logs_dir, f"{now.date()} {now.time()}.log"
             )
 
             command = [self.venv_python, self.script_path]
@@ -61,6 +70,9 @@ class SubprocessStation:
                 command += ["--bot_token", self.input_data]
 
             command += ["--company_name", self.company_name]
+
+            if self.additional_data:
+                command += ["--additional_data", self.additional_data]
 
             with open(path_to_logs_file, "w") as logs_file:
                 process = subprocess.Popen(
