@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 from aiogram import Bot
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.types import FSInputFile
 from aiogram.utils.media_group import MediaGroupBuilder
 from app.bots.workers_bots.pyrogram_scripts.utils.parsing_posts_utils.entities_including import with_entities_including
@@ -20,7 +21,8 @@ subprocess_station = SubprocessStation()
 
 def get_bot(token: str):
     try:
-        bot = Bot(token=token)
+        session = AiohttpSession()
+        bot = Bot(token=token, session=session)
         return bot
     except Exception as e:
         logger.error("Возникла ошибка при инициализации клиента: %s", e)
