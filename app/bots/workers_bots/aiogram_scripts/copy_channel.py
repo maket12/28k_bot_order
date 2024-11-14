@@ -66,7 +66,7 @@ async def main(token: str | None, company_name: str | None):
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=source_chat_id)
 
-        all_posts = chat_db.get_all_posts()[-1:]
+        all_posts = chat_db.get_all_posts()
 
         media_group = MediaGroupBuilder()
 
