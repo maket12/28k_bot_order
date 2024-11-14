@@ -41,7 +41,13 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
 
         links_list = links.split(' ')
         for link in links_list:
-            messages_ids.append(int(link.split('/')[-1]))
+            link_data = link.split('/')[-1]
+            msg_id = ""
+            string_pointer = 0
+            while link_data[string_pointer].isdigit():
+                msg_id += link_data[string_pointer]
+
+            messages_ids.append(int(msg_id))
 
         all_posts = await app.get_messages(chat_id=source_chat_id,
                                            message_ids=messages_ids)

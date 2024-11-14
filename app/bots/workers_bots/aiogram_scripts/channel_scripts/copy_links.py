@@ -39,7 +39,6 @@ def get_full_media_path(file_id: str):
         for file_name in os.listdir(target_dir):
             # Проверяем, начинается ли имя файла с file_id
             if file_name.startswith(file_id):
-                logger.debug(f"Found file: {file_name}")
                 file_path = os.path.join(target_dir, file_name)
                 break  # Останавливаемся при нахождении первого совпадения
         return file_path
