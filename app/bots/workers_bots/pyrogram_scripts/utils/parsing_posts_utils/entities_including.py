@@ -1,8 +1,6 @@
 from app.services.logs.logging import logger
 
-post_data = [None, None, None, None, None, None, None, None, None, None,
-                 None, None, None, None, None, None, None]
-print(bool(post_data))
+
 def with_entities_including(text: str, entities: str):
     try:
         entities_list = entities.split(';')
