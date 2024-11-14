@@ -1,5 +1,8 @@
 from app.services.logs.logging import logger
-
+post_data = [None, None, None, None, None, None, None, None, None, None,
+                 None, None, None, None, None, None, None]
+if any(attribute for attribute in post_data):
+    print(1)
 
 def with_entities_including(text: str, entities: str):
     try:

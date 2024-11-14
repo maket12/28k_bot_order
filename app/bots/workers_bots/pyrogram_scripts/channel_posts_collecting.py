@@ -179,8 +179,7 @@ async def parsing_process_links(session_path: str, source_chat_id: str, source_c
         for message in all_posts:
             post_data = await collect_post(message=message)
 
-            if any(attribute for attribute in post_data):
-                chat_db.add_post(post_data=post_data)
+            chat_db.add_post(post_data=post_data)
 
         all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
     except Exception as e:
@@ -213,7 +212,8 @@ async def parsing_process_all(session_path: str, source_chat_id: str, source_cha
 
             post_data = await collect_post(message=message)
 
-            chat_db.add_post(post_data=post_data)
+            if any(attribute for attribute in post_data):
+                chat_db.add_post(post_data=post_data)
 
             await asyncio.sleep(5)
 

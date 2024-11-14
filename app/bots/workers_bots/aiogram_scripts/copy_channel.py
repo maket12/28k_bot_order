@@ -72,13 +72,6 @@ async def main(token: str | None, company_name: str | None):
 
         media_group = MediaGroupBuilder()
 
-        last_media_group_id = None
-        for ind in range(len(all_posts), 0):
-            if all_posts[ind]:
-                # Определяем media_group_id самого первого непустого поста
-                last_media_group_id = all_posts[ind][16]
-                break
-
         last_media_group_id = 0
         media_group_length = 0
 
