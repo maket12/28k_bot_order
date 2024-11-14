@@ -20,7 +20,6 @@ class SubprocessStation:
 
     def set_script_path(self, script_type: str, script_name: str):
         curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        logger.info(f"Found way: {curr_dir}")
         self.script_path = os.path.join(
             curr_dir, f"bots/workers_bots/{script_type}_scripts/", script_name
         )

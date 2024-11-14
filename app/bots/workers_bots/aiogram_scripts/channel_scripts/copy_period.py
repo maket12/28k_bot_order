@@ -31,7 +31,7 @@ def get_bot(token: str):
 
 def get_full_media_path(file_id: str):
     try:
-        curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        curr_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
         target_dir = os.path.join(curr_dir, f"media")
 
         logger.debug(f"File_id: {file_id}")
