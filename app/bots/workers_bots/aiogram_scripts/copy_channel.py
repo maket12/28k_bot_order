@@ -70,7 +70,13 @@ async def main(token: str | None, company_name: str | None):
 
         media_group = MediaGroupBuilder()
 
-        last_media_group_id = all_posts[0][16]
+        last_media_group_id = None
+        for ind in all_posts:
+            if all_posts[ind]:
+                # Определяем media_group_id самого первого непустого поста
+                last_media_group_id = all_posts[0][16]
+                break
+
         media_group_length = 0
 
         for post in all_posts:
