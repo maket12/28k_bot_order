@@ -169,7 +169,7 @@ async def parsing_process_links(session_path: str, source_chat_id: str, source_c
 
         messages_ids = []
 
-        links_list = links.split('|')
+        links_list = links.split(' ')
         for link in links_list:
             messages_ids.append(int(link.split('/')[-1]))
 
@@ -249,10 +249,16 @@ async def main(session_path: str | None, company_name: str | None):
 
         chat_existing = all_chats_db.check_chat_existing(chat_id=source_chat_id)
 
-        if not chat_existing:
-            if get_history_collecting_way == "all":
-                await parsing_process_all(session_path=session_path, source_chat_id=source_chat_id,
+        if get_history_collecting_way == "all":
+            if not chat_existing:
+                await parsing_process_all(session_path=session_path,
+                                          source_chat_id=source_chat_id,
                                           source_chat_type=source_chat_type)
+        elif get_history_collecting_way.startswith("https://"):
+            await parsing_process_links(session_path=session_path,
+                                        source_chat_id=source_chat_id,
+                                        source_chat_type=source_chat_type,
+                                        links=get_history_collecting_way)
 
         subprocess_station.set_script_path(script_type="aiogram", script_name="copy_channel.py")
         subprocess_station.set_input_data(data=sender_token)
