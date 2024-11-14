@@ -410,6 +410,7 @@ class ChatDatabase:
             for msg_id in messages_ids:
                 post_data = self.cursor.execute('SELECT * FROM "all_posts" WHERE "post_message_id" = ?',
                                                 (int(msg_id),)).fetchone()
+                logger.warning(str(post_data))
                 if post_data:
                     result.append(post_data)
             return result

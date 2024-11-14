@@ -48,6 +48,7 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
 
         for message in all_posts:
             post_existing = bool(chat_db.get_posts_by_ids(messages_ids=[message.id]))
+            logger.warning(post_existing)
             if not post_existing:
                 post_data = await post_parsing(message=message)
                 chat_db.add_post(post_data=post_data)
