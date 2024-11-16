@@ -443,5 +443,5 @@ class ChatDatabase:
         with self.connection:
             return self.cursor.execute('SELECT * FROM "all_comments"').fetchall()
 
-    def add_message(self, message_data: list):
+    def add_message(self, message_data: list):return
 
