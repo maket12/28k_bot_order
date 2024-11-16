@@ -50,7 +50,7 @@ def get_full_media_path(file_id: str):
 
 
 async def main(token: str | None, company_name: str | None):
-    try:
+    # try:
         logger.info(f"Компания {company_name} запущена.")
 
         if not token:
@@ -238,8 +238,8 @@ async def main(token: str | None, company_name: str | None):
 
         await bot.session.close()
         logger.debug("Копирование канала успешно завершено!")
-    except Exception as e:
-        logger.error("Возникла ошибка в copy_channel: %s", e)
+    # except Exception as e:
+    #     logger.error("Возникла ошибка в copy_channel: %s", e)
 
 
 if __name__ == "__main__":

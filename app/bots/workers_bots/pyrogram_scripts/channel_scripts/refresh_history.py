@@ -1,5 +1,6 @@
 import asyncio
 import sys
+from datetime import datetime
 from pyrogram import Client
 from app.bots.workers_bots.pyrogram_scripts.utils.collect_post import post_parsing
 from app.services.database.database_code import ProjectsDatabase, AccountsDatabase, ChatDatabase
@@ -24,42 +25,14 @@ def get_client(session_path: str):
         return False
 
 
-async def parsing_process(session_path: str, source_chat_id: str, source_chat_type: str):
+async def refreshing_process(session_path: str, source_chat_id: str, source_chat_type: str, events: list):
     try:
-        app = get_client(session_path=session_path)
-        if not app:
-            return
-
-        logger.debug(f"Процесс сбора постов с канала {source_chat_id} начался!")
-        await app.start()
-
-        app.get_dialogs()  # refresh session data
-
-        chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
-        chat_db.create_tables(chat_type=source_chat_type)
-
-        messages_counter = 0
-        async for message in app.get_chat_history(chat_id=source_chat_id):
-            messages_counter += 1
-            if (messages_counter % 100) == 0:
-                await asyncio.sleep(20)
-
-            post_data = await post_parsing(message=message)
-
-            if any(attribute for attribute in post_data):
-                chat_db.add_post(post_data=post_data)
-
-            await asyncio.sleep(5)
-
-        all_chats_db.add_chat(chat_id=int(source_chat_id), chat_type=source_chat_type)
-
-        logger.debug(f"Парсинг канала {source_chat_id} успешно завершён!")
-        await app.stop()
+        pass
     except Exception as e:
-        logger.error("Возникла ошибка в parsing_process: %s", e)
+        logger.error("Возникла ошибка в refreshing_process: %s", e)
 
 
-async def main(session_path: str | None, company_name: str | None):
+async def main(session_path: str, company_name: str):
     try:
         if not session_path:
             logger.critical("Путь к сессии не был передан!")
@@ -79,21 +52,8 @@ async def main(session_path: str | None, company_name: str | None):
                                                             company_name=company_name)
         sender_token = accounts_db.get_attribute_by_username(attribute="bot_token",
                                                              username=sender_username)
-
-        chat_existing = all_chats_db.check_chat_existing(chat_id=source_chat_id)
-
-        if not chat_existing:
-            await parsing_process(session_path=session_path,
-                                  source_chat_id=source_chat_id,
-                                  source_chat_type=source_chat_type)
-
-        subprocess_station.set_script_path(script_type="aiogram",
-                                           script_name="channel_scripts/copy_all.py")
-        subprocess_station.set_input_data(data=sender_token)
-        subprocess_station.set_company_name(company=company_name)
-        subprocess_station.run_script(script_name="copy_all.py")
     except Exception as e:
-        logger.error("Возникла ошибка в channel_posts_collecting: %s", e)
+        logger.error("Возникла ошибка в main: %s", e)
 
 
 if __name__ == "__main__":

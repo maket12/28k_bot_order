@@ -356,33 +356,57 @@ class ChatDatabase:
         self.connection = sqlite3.connect(absolute_path)
         self.cursor = self.connection.cursor()
 
-    def create_tables(self):
+    def create_tables(self, chat_type: str):
         with self.connection:
-            self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_posts" ('
-                                '"id" INTEGER PRIMARY KEY,'
-                                '"text" TEXT,'
-                                '"photo" TEXT,'
-                                '"video" TEXT,'
-                                '"audio" TEXT,'
-                                '"document" TEXT,'
-                                '"video_note" TEXT,'
-                                '"voice_message" TEXT,'
-                                '"sticker" TEXT,'
-                                '"location" TEXT,'
-                                '"contact" TEXT,'
-                                '"poll" TEXT,'
-                                '"animation" TEXT,'
-                                '"markup" TEXT,'
-                                '"entities" TEXT,'
-                                '"post_type" TEXT,'
-                                '"post_media_group_id" INTEGER,'
-                                '"post_message_id" INTEGER)')  # message_id в канале-источнике
+            if chat_type == "channel":
+                self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_posts" ('
+                                    '"id" INTEGER PRIMARY KEY,'
+                                    '"text" TEXT,'
+                                    '"photo" TEXT,'
+                                    '"video" TEXT,'
+                                    '"audio" TEXT,'
+                                    '"document" TEXT,'
+                                    '"video_note" TEXT,'
+                                    '"voice_message" TEXT,'
+                                    '"sticker" TEXT,'
+                                    '"location" TEXT,'
+                                    '"contact" TEXT,'
+                                    '"poll" TEXT,'
+                                    '"animation" TEXT,'
+                                    '"markup" TEXT,'
+                                    '"entities" TEXT,'
+                                    '"post_type" TEXT,'
+                                    '"post_media_group_id" INTEGER,'
+                                    '"post_message_id" INTEGER)')  # message_id в канале-источнике
 
-            self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_comments" ('
-                                '"id" INTEGER PRIMARY KEY,'
-                                '"text" TEXT,'
-                                '"username" TEXT,'
-                                '"comment_message_id" INTEGER)')
+                self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_comments" ('
+                                    '"id" INTEGER PRIMARY KEY,'
+                                    '"text" TEXT,'
+                                    '"username" TEXT,'
+                                    '"comment_message_id" INTEGER)')
+
+            elif chat_type == "group":
+                self.cursor.execute('CREATE TABLE IF NOT EXISTS "all_messages" ('
+                                    '"id" INTEGER PRIMARY KEY,'
+                                    '"person_name" TEXT,'
+                                    '"person_username" TEXT,'
+                                    '"text" TEXT,'
+                                    '"photo" TEXT,'
+                                    '"video" TEXT,'
+                                    '"audio" TEXT,'
+                                    '"document" TEXT,'
+                                    '"video_note" TEXT,'
+                                    '"voice_message" TEXT,'
+                                    '"sticker" TEXT,'
+                                    '"location" TEXT,'
+                                    '"contact" TEXT,'
+                                    '"poll" TEXT,'
+                                    '"animation" TEXT,'
+                                    '"markup" TEXT,'
+                                    '"entities" TEXT,'
+                                    '"post_type" TEXT,'
+                                    '"post_media_group_id" INTEGER,'
+                                    '"post_message_id" INTEGER)')
             return
 
     def add_post(self, post_data: list):
@@ -418,4 +442,6 @@ class ChatDatabase:
     def get_all_comments(self):
         with self.connection:
             return self.cursor.execute('SELECT * FROM "all_comments"').fetchall()
+
+    def add_message(self, message_data: list):
 

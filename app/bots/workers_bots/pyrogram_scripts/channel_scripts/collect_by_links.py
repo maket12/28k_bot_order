@@ -35,7 +35,7 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
         app.get_dialogs()  # refresh session data
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
-        chat_db.create_tables()
+        chat_db.create_tables(chat_type=source_chat_type)
 
         messages_ids = []
 
