@@ -81,10 +81,10 @@ async def main(token: str | None, company_name: str | None):
         for post in reversed(all_posts):
             try:
                 if last_media_group_id == 0:
-                    last_media_group_id = post[17]
+                    last_media_group_id = post[16]
 
                 if last_media_group_id:
-                    if post[17] != last_media_group_id:
+                    if post[16] != last_media_group_id:
                         await bot.send_media_group(media=media_group.build(),
                                                    chat_id=recipient_chat_id)
                         media_group = MediaGroupBuilder()
@@ -231,7 +231,7 @@ async def main(token: str | None, company_name: str | None):
                                                  reply_markup=inline_keyboard,
                                                  parse_mode="html")
 
-                last_media_group_id = post[17]
+                last_media_group_id = post[16]
                 await asyncio.sleep(5)
             except Exception as e:
                 logger.error("Возникла ошибка в copy_channel: %s", e)
