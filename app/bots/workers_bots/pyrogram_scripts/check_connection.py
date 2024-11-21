@@ -7,7 +7,9 @@ from app.services.logs.logging import logger
 
 async def check_pyrogram_connection(phone_number: str, api_id: str, api_hash: str, proxy: str):
     try:
-        app = Client(name=phone_number,
+        session_path = os.path.join(os.getcwd(),
+                                    f"app/bots/workers_bots/pyrogram_scripts/sessions/{phone_number}")
+        app = Client(name=session_path,
                      api_id=api_id,
                      api_hash=api_hash,
                      phone_number=phone_number)
