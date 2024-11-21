@@ -98,14 +98,16 @@ async def launch_company(call: types.CallbackQuery, bot: Bot):
         projects_db.set_company_status(company_name=company_name,
                                        status="active")
 
-        agent_account = projects_db.get_company_attribute(attribute="receiver_account",
+        agent_username = projects_db.get_company_attribute(attribute="receiver_account",
                                                           company_name=company_name)
+        agent_phone = accounts_db.get_attribute_by_username(attribute="phone_number",
+                                                            username=agent_username)
 
         subprocess_station.set_script_path(script_type="pyrogram",
                                            script_name=f"channel_scripts/{script_name}")
-        subprocess_station.set_input_data(data=f"{agent_account}.session")
+        subprocess_station.set_input_data(data=f"{agent_phone}.session")
         subprocess_station.set_company_name(company=company_name)
-        subprocess_station.run_script(script_name="channel_posts_collecting.py")
+        subprocess_station.run_script(script_name=script_name)
 
         await call.answer(text="Компания успешно запущена!",
                           show_alert=True)

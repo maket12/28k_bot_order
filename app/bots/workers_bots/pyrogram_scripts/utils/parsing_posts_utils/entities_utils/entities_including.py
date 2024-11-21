@@ -6,8 +6,13 @@ def with_entities_including(text: str, entities: str):
         if entities:
             entities_list = entities.split(';')
 
+            logger.warning(entities_list)
+
             for entity in entities_list:
                 entity_objects = entity.split(', ')
+
+                logger.critical(entity_objects)
+
                 entity_type = entity_objects[0].split(':')[1].strip()
                 entity_offset = int(entity_objects[1].split(':')[1].strip())
                 entity_length = int(entity_objects[2].split(':')[1].strip())
