@@ -271,7 +271,7 @@ def build_companies_markup(companies: list, project_name: str, current_page: int
         last_page = str(ceil(len(buttons_list) / 4))
 
         if buttons_list:
-            for button_ind in range(4 * (current_page - 1), (current_page - 1) + 4 + 1):
+            for button_ind in range(4 * (current_page - 1), (current_page - 1) * 4 + 4):
                 if len(buttons_list) == button_ind:
                     break
 

@@ -38,7 +38,6 @@ async def choose_project(call: types.CallbackQuery, bot: Bot):
     try:
         project_name = ''.join(call.data.split('_')[2:])
         all_companies = projects_db.get_companies(project_name=project_name)
-        logger.critical(str(all_companies))
         await bot.edit_message_text(text=f"Вы перешли в меню проекта {project_name}.",
                                     chat_id=call.from_user.id,
                                     message_id=call.message.message_id,
