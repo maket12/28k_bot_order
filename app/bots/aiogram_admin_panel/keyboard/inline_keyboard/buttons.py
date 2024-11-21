@@ -266,7 +266,6 @@ def build_companies_markup(companies: list, project_name: str, current_page: int
         first = prev = last = nxt = "current"
         last_page = "1"
     else:
-        print(companies)
         buttons_list = create_companies_buttons(companies=companies)
 
         last_page = str(ceil(len(buttons_list) / 4))
