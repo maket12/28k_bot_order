@@ -83,12 +83,11 @@ async def settings_project(call: types.CallbackQuery, bot: Bot):
 async def delete_project(call: types.CallbackQuery, bot: Bot):
     try:
         project_name = ''.join(call.data.split('_')[2:])
+        logger.debug(f"Project name: {project_name}")
         projects_db.delete_project(name=project_name)
 
-        await bot.edit_message_text(text=f"Проект '{project_name} успешно удалён!'",
-                                    chat_id=call.from_user.id,
-                                    message_id=call.message.message_id,
-                                    reply_markup=None)
+        await call.answer(text=f"Проект '{project_name} успешно удалён!'",
+                          show_alert=True)
         await asyncio.sleep(2)
         await see_projects(call=call, bot=bot)
     except Exception as e:
