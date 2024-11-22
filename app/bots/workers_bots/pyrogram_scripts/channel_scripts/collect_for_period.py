@@ -40,7 +40,8 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
 
         app.get_dialogs()  # refresh session data
 
-        await app.join_chat(chat_id=source_chat_id)
+        await app.get_chat(chat_id=int(source_chat_id))
+        chat = await app.join_chat(chat_id=source_chat_id)
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
         chat_db.create_tables(chat_type=source_chat_type)
@@ -50,7 +51,7 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
         ending_date_dt = datetime.strptime(ending_date, "%d%m%y")
 
         messages_ids = []
-        async for message in app.get_chat_history(chat_id=source_chat_id, offset_date=ending_date_dt):
+        async for message in app.get_chat_history(chat_id=int(source_chat_id), offset_date=ending_date_dt):
             if not (message.date >= starting_date_dt):
                 break
 

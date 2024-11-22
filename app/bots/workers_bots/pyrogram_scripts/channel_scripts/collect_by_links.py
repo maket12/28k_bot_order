@@ -33,7 +33,7 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
         await app.start()
 
         app.get_dialogs()  # refresh session data
-        await app.join_chat(chat_id=source_chat_id)
+        await app.join_chat(chat_id=int(source_chat_id))
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
         chat_db.create_tables(chat_type=source_chat_type)
@@ -51,7 +51,7 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
 
             messages_ids.append(int(msg_id))
 
-        all_posts = await app.get_messages(chat_id=source_chat_id,
+        all_posts = await app.get_messages(chat_id=int(source_chat_id),
                                            message_ids=messages_ids)
 
         for message in all_posts:

@@ -35,13 +35,13 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
 
         app.get_dialogs()  # refresh session data
 
-        await app.join_chat(chat_id=source_chat_id)
+        await app.join_chat(chat_id=int(source_chat_id))
 
         chat_db = ChatDatabase(chat_type=source_chat_type, chat_id=int(source_chat_id))
         chat_db.create_tables(chat_type=source_chat_type)
 
         messages_counter = 0
-        async for message in app.get_chat_history(chat_id=source_chat_id):
+        async for message in app.get_chat_history(chat_id=int(source_chat_id)):
             messages_counter += 1
             if (messages_counter % 100) == 0:
                 await asyncio.sleep(20)
