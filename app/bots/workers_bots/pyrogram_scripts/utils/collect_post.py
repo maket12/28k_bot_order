@@ -1,5 +1,5 @@
 import os
-from pyrogram import Client, types
+from pyrogram import types
 from app.bots.workers_bots.pyrogram_scripts.utils.parsing_posts_utils.entities_utils.entities_parsing import parse_entities
 from app.bots.workers_bots.pyrogram_scripts.utils.parsing_posts_utils.markup_utils.markup_parsing import parse_markup
 from app.services.logs.logging import logger
