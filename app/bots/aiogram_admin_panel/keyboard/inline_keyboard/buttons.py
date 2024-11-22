@@ -218,7 +218,7 @@ def build_projects_markup(projects: list, current_page: int):
         last_page = str(ceil(len(buttons_list) / 4))
 
         if buttons_list:
-            for button_ind in range(4 * (current_page - 1), (current_page - 1) + 4):
+            for button_ind in range(4 * (current_page - 1), (current_page - 1) * 4 + 4):
                 if button_ind >= len(buttons_list):
                     break
 

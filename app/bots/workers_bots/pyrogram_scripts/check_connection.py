@@ -26,6 +26,7 @@ async def check_pyrogram_code(app: Client, auth_code: str, code_info: types.Sent
         await app.sign_in(phone_number=app.phone_number, phone_code=auth_code,
                           phone_code_hash=code_info.phone_code_hash)
         info = await app.get_me()
+        await app.stop()
         return info.first_name, info.username
     except SessionPasswordNeeded:
         return "password needed", app
