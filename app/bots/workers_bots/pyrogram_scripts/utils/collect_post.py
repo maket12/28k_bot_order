@@ -32,6 +32,8 @@ async def post_parsing(message: types.Message):
 
         logger.info(f"Сбор поста {message.id}")
 
+        print(message)
+
         if message.text:
             post_data[0] = message.text
             post_data[14] = "text"
