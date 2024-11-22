@@ -121,6 +121,7 @@ async def post_parsing(message: types.Message):
             if message.reply_markup.inline_keyboard:
                 post_data[12] = parse_markup(message.reply_markup)
 
+        logger.critical(message.entities)
         if message.entities:
             post_data[13] = parse_entities(entities=message.entities)
 
