@@ -33,7 +33,9 @@ async def parsing_process(session_path: str, source_chat_id: str, source_chat_ty
         logger.debug(f"Процесс сбора постов с канала {source_chat_id} начался!")
         await app.start()
 
-        app.get_dialogs()  # refresh session data
+        chats = app.get_dialogs()  # refresh session data
+        async for chat in chats:
+            logger.warning(f"Title: {chat.chat.title}, id: {chat.chat.id}")
 
         await app.join_chat(chat_id=int(source_chat_id))
 
